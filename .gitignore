@@ -1,0 +1,10 @@
+/node_modules
+
+# ln connection specific
+admin.macaroon
+readonly.macaroon
+tls.cert
+
+# configs
+.env
+.env.test.txt
