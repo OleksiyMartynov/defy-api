@@ -9,9 +9,7 @@ router.get("/balance", async (req, res, next) => {
     res.status(400)
     return res.send({ message: 'Invalid account address'})
   }
-  const accountModel = await req.context.models.Account.findOne({
-    _id: account
-  });
+  const accountModel = await req.context.models.Account.accountForAddress(account);
   if (accountModel) {
     return res.send({ balance: accountModel.balance });
   } else {

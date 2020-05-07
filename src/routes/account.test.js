@@ -9,7 +9,7 @@ const models = require("../models").default;
 const ACCOUNT_ADDRESS_INVALID = "hello";
 const ACCOUNT_ADDRESS_UNKNOWN = "0xd115bffabbdd893a6f7cea402e7338643ced44a7";
 const ACCOUNT_EXISTING = {
-  _id: "0xd115bffabbdd893a6f7cea402e7338643ced44a6",
+  address: "0xd115bffabbdd893a6f7cea402e7338643ced44a6",
   balance: 9999,
 };
 
@@ -35,7 +35,7 @@ describe("Account Endpoints", () => {
   });
   it("should get balance", async () => {
     const res = await request(app)
-      .get(`/accounts/balance?account=${ACCOUNT_EXISTING._id}`)
+      .get(`/accounts/balance?account=${ACCOUNT_EXISTING.address}`)
       .send();
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("balance");

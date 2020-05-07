@@ -1,0 +1,2 @@
+export const HISTORY_EVENT_TYPES = ['deposit','withdrawal','debate_created','debate_finished','opinion_created','opinion_finished','vote_created','vote_finished'];
+export const DRAW_DURATION = 24 * 60 * 60 * 1000;
