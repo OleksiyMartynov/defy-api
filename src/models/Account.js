@@ -16,10 +16,11 @@ const accountSchema = new mongoose.Schema({
 accountSchema.statics.accountForAddress = function accountForAddress(address) {
   return this.findOne({ address: address });
 };
-accountSchema.statics.updateBalance = async function updateBalanceForAddress(
+accountSchema.statics.updateBalance = async function updateBalance(
   address,
   delta,
-  reason
+  reason,
+  receiptSchemaId
 ) {
   if (HISTORY_EVENT_TYPES.indexOf(reason) === -1) {
     throw new Error("Unknown balance update reason.");
@@ -46,11 +47,16 @@ accountSchema.statics.updateBalance = async function updateBalanceForAddress(
   } else if (!account && reason === "deposit") {
     account = new Account({ address });
   }
+
+  if ((account.balance + delta) < 0) {
+    throw new Error("Account does not have enough funds");
+  }
   account.balance += delta;
+  
   await History.create({
     account: account._id,
     action: reason,
-    schemaId: account._id,
+    schemaId: receiptSchemaId?receiptSchemaId:account._id,
     amount: delta,
   });
   return account.save();

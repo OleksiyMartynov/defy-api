@@ -117,6 +117,11 @@ describe("Account Model", () => {
         
     }
   })
+  it("Should not update account balance without enough funds", async () => {
+    await expect(
+      models.Account.updateBalance(MOCK_ADDRESS, -99999, "withdrawal")
+    ).rejects.toThrow("Account does not have enough funds");
+  });
   afterAll(async () => {
     await removeAllCollections();
   });
