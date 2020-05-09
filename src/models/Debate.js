@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { DRAW_DURATION } from "./ModelConstants";
 import Account from "./Account";
 import History from "./History";
+import Opinion from "./Opinion";
 import Tag from "./Tag";
 
 const debateSchema = new mongoose.Schema({
@@ -38,9 +39,12 @@ const debateSchema = new mongoose.Schema({
   created: { type: Date, default: Date.now },
   //Seconds untill the debate outcome is finalized
   duration: { type: Number, default: DRAW_DURATION },
-  //Updated after a new opinion is created
-  lastUpdateTime: { type: Date, default: Date.now },
 });
+debateSchema.methods.getLastUpdateTime = async function getLastUpdateTime(){
+  const topOpinionQuery = Opinion.find({debate : this._id}).sort({stake : -1}).limit(1);
+  const topOpinion = await topOpinionQuery.exec();
+  return topOpinion[0]? topOpinion[0].created: this.created;
+};
 debateSchema.statics.createDebate = async function createDebate(
   address,
   title,
@@ -62,7 +66,7 @@ debateSchema.statics.createDebate = async function createDebate(
     title,
     description,
     tags: tagDocs.map((t) => t._id),
-    stake: Math.abs(stake),
+    stake: stake,
     duration
   });
 
@@ -70,26 +74,25 @@ debateSchema.statics.createDebate = async function createDebate(
     tag.debates.push(createdDebate._id);
     tag.save();
   });
-  await Account.updateBalance(account.address, stake, "debate_created", createdDebate._id);
+  await Account.updateBalance(account.address, -stake, "debate_created", createdDebate._id);
   return createdDebate.save();
 };
-debateSchema.methods.isPastEndTime = function isPastEndTime(){
+debateSchema.methods.isPastEndTime = async function isPastEndTime(){
   const now = new Date();
-  const endTime = this.lastUpdateTime.getTime() + this.duration;
+  const endTime = (await this.getLastUpdateTime()).getTime() + this.duration;
   return now.getTime() > endTime;
 }
 debateSchema.methods.isCreatorPaid = function isCreatorPaid(){
   return History.findOne({account:this.creator, schemaId:this._id, action:"debate_finished"})
 }
 debateSchema.methods.completeDebate = async function completeDebate(){
-  if(!this.isPastEndTime()){
+  if(!(await this.isPastEndTime())){
     throw new Error("Cannot complete debate before end time");
   }
   const isCreatorPaid = await this.isCreatorPaid();
   if(isCreatorPaid){
     throw new Error("Debate already completed");
   }
-  //todo consider finishing opinions and votes here
   const account = await Account.findById(this.creator)
   await Account.updateBalance(account.address, this.stake, "debate_finished", this._id);
   return this.save();

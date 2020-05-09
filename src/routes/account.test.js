@@ -7,9 +7,9 @@ const models = require("../models").default;
 //TEST DATA
 
 const ACCOUNT_ADDRESS_INVALID = "hello";
-const ACCOUNT_ADDRESS_UNKNOWN = "0xd115bffabbdd893a6f7cea402e7338643ced44a7";
+const ACCOUNT_ADDRESS_UNKNOWN = "0xd165bffbbbdd893a6f7cea402e7338643ced44a7";
 const ACCOUNT_EXISTING = {
-  address: "0xd115bffabbdd893a6f7cea402e7338643ced44a6",
+  address: "0xe325bffabbdd893a6f7cea402e7338643ced44a6",
   balance: 9999,
 };
 

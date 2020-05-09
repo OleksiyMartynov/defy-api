@@ -5,19 +5,21 @@ import { HISTORY_EVENT_TYPES } from "../models/ModelConstants";
 import { sleep } from "../utils/Common";
 
 //TEST DATA
-const MOCK_ADDRESS = "0xd115bffabbdd893a6f7cea402e7338643ced44a7";
 const ACCOUNT_EXISTING = {
-  address: "0xd115bffabbdd893a6f7cea402e7338643ced44a6",
+  address: "0xc115bffabbdd893a6f7cea402e7338643ced44a6",
   balance: 9999,
 };
 
-describe("Account Model", () => {
-  beforeAll(async () => {
+describe("Debate Model", () => {
+  beforeEach(async () => {
     await connectDb(process.env.DATABASE_URL);
     await models.Account.create(ACCOUNT_EXISTING);
   });
+  afterEach(async () => {
+    await removeAllCollections();
+  });
   it("Should not create debate with unknown account", async () => {
-    await expect(models.Debate.createDebate(MOCK_ADDRESS)).rejects.toThrow(
+    await expect(models.Debate.createDebate("0xd215bffabbdd893a6f7cea402e7338643ced44a1")).rejects.toThrow(
       "Unknown account address"
     );
   });
@@ -28,7 +30,7 @@ describe("Account Model", () => {
         "title",
         "description",
         [],
-        -(ACCOUNT_EXISTING.balance + 1)
+        ACCOUNT_EXISTING.balance + 1
       )
     ).rejects.toThrow("Account does not have enough funds");
   });
@@ -39,7 +41,7 @@ describe("Account Model", () => {
         "title",
         "description special char tag",
         ["#noHash"],
-        -101
+        101
       )
     ).rejects.toThrow();
     await expect(
@@ -48,7 +50,7 @@ describe("Account Model", () => {
         "title",
         "description short tag",
         ["t"],
-        -101
+        101
       )
     ).rejects.toThrow();
     await expect(
@@ -57,7 +59,7 @@ describe("Account Model", () => {
         "title",
         "description special char end",
         ["tag+"],
-        -101
+        101
       )
     ).rejects.toThrow();
     await expect(
@@ -66,7 +68,7 @@ describe("Account Model", () => {
         "title",
         "description too many tags",
         ["tag", "tag", "tag", "tag", "tag", "tag"],
-        -101
+        101
       )
     ).rejects.toThrow("Too many tags");
   });
@@ -85,7 +87,7 @@ describe("Account Model", () => {
       title,
       description,
       tags,
-      -stake
+      stake
     );
 
     expect(debate).toHaveProperty("creator", accountDoc._id);
@@ -105,15 +107,6 @@ describe("Account Model", () => {
       expect(tag.debates).toContainEqual(debate._id);
       expect(tag).toHaveProperty("name", tags[index]);
     });
-    //check history
-    const historyItem = await models.History.findOne({
-      account: accountDoc._id,
-      timestamp: { $gte: timestamp },
-    });
-    expect(historyItem).toHaveProperty("action", "debate_created");
-    expect(historyItem).toHaveProperty("amount", -stake);
-    expect(historyItem).toHaveProperty("account", accountDoc._id);
-    expect(historyItem).toHaveProperty("schemaId", debate._id);
   });
   it("should not be able to finish debate before end time", async () => {
     const stake = 100;
@@ -125,7 +118,7 @@ describe("Account Model", () => {
       title,
       description,
       tags,
-      -stake
+      stake
     );
     await expect(debate.completeDebate()).rejects.toThrow(
       "Cannot complete debate before end time"
@@ -142,7 +135,7 @@ describe("Account Model", () => {
       title,
       description,
       tags,
-      -stake,
+      stake,
       duration
     );
     const accountDoc = await models.Account.accountForAddress(
@@ -158,15 +151,6 @@ describe("Account Model", () => {
 
     expect(newBalance).toBe(initialBalance + stake);
 
-    //check history
-    const historyItem = await models.History.findOne({
-      account: accountDoc._id,
-      timestamp: { $gte: timestamp },
-    });
-    expect(historyItem).toHaveProperty("action", "debate_finished");
-    expect(historyItem).toHaveProperty("amount", stake);
-    expect(historyItem).toHaveProperty("account", accountDoc._id);
-    expect(historyItem).toHaveProperty("schemaId", debate._id);
   });
   it("should not be able to finish debate twice", async () => {
     const stake = 100;
@@ -179,7 +163,7 @@ describe("Account Model", () => {
       title,
       description,
       tags,
-      -stake,
+      stake,
       duration
     );
     await sleep(duration + 1);
@@ -187,8 +171,5 @@ describe("Account Model", () => {
     await expect(debate.completeDebate()).rejects.toThrow(
       "Debate already completed"
     );
-  });
-  afterAll(async () => {
-    await removeAllCollections();
   });
 });

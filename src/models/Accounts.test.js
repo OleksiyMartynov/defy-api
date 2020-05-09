@@ -4,9 +4,9 @@ import models from "../models";
 import {HISTORY_EVENT_TYPES} from "../models/ModelConstants";
 
 //TEST DATA
-const MOCK_ADDRESS = "0xd115bffabbdd893a6f7cea402e7338643ced44a7";
+const MOCK_ADDRESS = "0xa115bffaccdd893a6f7cea402e7338643ced44a7";
 const ACCOUNT_EXISTING = {
-  address: "0xd115bffabbdd893a6f7cea402e7338643ced44a6",
+  address: "0xb115bffabbdd893a6f7cea402e7338643ced44a6",
   balance: 9999,
 };
 
@@ -39,11 +39,6 @@ describe("Account Model", () => {
     expect(returnedAccount).toHaveProperty("_id", persistedAccount._id);
     expect(persistedAccount).toHaveProperty("balance", balanceDelta);
     expect(persistedAccount).toHaveProperty("address", MOCK_ADDRESS);
-    const historyItem = await models.History.findOne({account:persistedAccount._id, timestamp:{"$gte": timestamp}});
-    expect(historyItem).toHaveProperty("action", reason);
-    expect(historyItem).toHaveProperty("amount", balanceDelta);
-    expect(historyItem).toHaveProperty("account", persistedAccount._id);
-    expect(historyItem).toHaveProperty("schemaId", persistedAccount._id);
   });
   it("Should only update balance", async () => {
     const balanceDelta = 3;
@@ -67,11 +62,6 @@ describe("Account Model", () => {
       ACCOUNT_EXISTING.balance + balanceDelta
     );
     expect(updatedAccount).toHaveProperty("address", ACCOUNT_EXISTING.address);
-    const historyItem = await models.History.findOne({account:updatedAccount._id, timestamp:{"$gte": timestamp}});
-    expect(historyItem).toHaveProperty("action", reason);
-    expect(historyItem).toHaveProperty("amount", balanceDelta);
-    expect(historyItem).toHaveProperty("account", updatedAccount._id);
-    expect(historyItem).toHaveProperty("schemaId", updatedAccount._id);
   });
   it("Should only update and decrease balance", async () => {
     const balanceDelta = -2;
@@ -95,11 +85,6 @@ describe("Account Model", () => {
       existing.balance + balanceDelta
     );
     expect(updatedAccount).toHaveProperty("address", ACCOUNT_EXISTING.address);
-    const historyItem = await models.History.findOne({account:updatedAccount._id, timestamp:{"$gte": timestamp}});
-    expect(historyItem).toHaveProperty("action", reason);
-    expect(historyItem).toHaveProperty("amount", balanceDelta);
-    expect(historyItem).toHaveProperty("account", updatedAccount._id);
-    expect(historyItem).toHaveProperty("schemaId", updatedAccount._id);
   });
   it("Should throw when delta and reason of balance update dont match", async ()=>{
     for await (let reason of HISTORY_EVENT_TYPES) {
