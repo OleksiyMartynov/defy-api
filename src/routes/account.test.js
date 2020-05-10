@@ -24,14 +24,14 @@ describe("Account Endpoints", () => {
       .get(`/accounts/balance?account=${ACCOUNT_ADDRESS_INVALID}`)
       .send();
     expect(res.statusCode).toEqual(400);
-    expect(res.body).toHaveProperty("message");
+    expect(res.body).toHaveProperty("error");
   });
   it("should not get balance", async () => {
     const res = await request(app)
       .get(`/accounts/balance?account=${ACCOUNT_ADDRESS_UNKNOWN}`)
       .send();
     expect(res.statusCode).toEqual(400);
-    expect(res.body).toHaveProperty("message");
+    expect(res.body).toHaveProperty("error");
   });
   it("should get balance", async () => {
     const res = await request(app)
