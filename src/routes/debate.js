@@ -9,7 +9,7 @@ const router = Router();
 
 router.get("/", async (req, res) => {
   const { page, pageSize } = queryToPageInfo(req.query);
-  const { find, sort } = queryToFilter(req.query);
+  const { find, sort } = await queryToFilter(req.query);
   req.context.models.Debate.find(find)
     .select("creator title description tags stake created duration finished")
     .populate([
@@ -23,7 +23,7 @@ router.get("/", async (req, res) => {
       if (err) {
         res.status(500).send({ error: "Failed to get debates" });
       } else {
-        req.context.models.Debate.count().exec(function (err, count) {
+        req.context.models.Debate.countDocuments(find).exec(function (err, count) {
           if (err) {
             res.status(500).send({ error: "Failed to count debates" });
           } else {

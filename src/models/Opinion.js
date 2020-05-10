@@ -36,6 +36,8 @@ const opinionSchema = new mongoose.Schema({
   pro: { type: Boolean, required: true },
   //dont set manually
   created: { type: Date, default: Date.now, required: true },
+  //Flag for query search performance
+  finished: { type: Boolean, default:false}
 });
 
 opinionSchema.statics.createVote = async function createVote(
@@ -128,6 +130,7 @@ opinionSchema.methods.completeOpinion = async function completeOpinion() {
     OPINION_TYPES[this.contentType].finishedEvent,
     this._id
   );
+  this.finished = true;
   return this.save();
 };
 opinionSchema.statics.getPeriodicStakeAgregates = function getPeriodicStakeAgregates(

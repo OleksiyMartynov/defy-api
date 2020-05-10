@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import models from "../models";
 export const isValidAccountAddress = (address) => {
   try {
     return ethers.utils.getAddress(address);
@@ -14,23 +15,36 @@ export const queryToPageInfo = (query) => {
   return { page, pageSize };
 };
 
-export const queryToFilter = (query) => {
+export const queryToFilter = async (query) => {
   let filterFinished = query.finished ? true : false;
   let sort = {};
+  let find = {finished: filterFinished}
   if (query.sortByDate) {
     sort.created = "desc";
   } else if (query.sortBySize) {
     sort.stake = "desc";
   }
-  return { find: { finished: filterFinished }, sort };
+  if(query.filterCreatorAddress && isValidAccountAddress(query.filterCreatorAddress)){
+    const account = await models.Account.accountForAddress(query.filterCreatorAddress);
+    find.creator = account._id;
+  }
+  return { find, sort };
 };
+
+export const isValidAddress = (address) =>{
+  try{
+    if(ethers.utils.getAddress(address)){
+      return true;
+    }
+  }catch(ex){
+    return false;
+  }
+}
 
 export const isBodyValidDebate = (body) => {
   const { address, title, description, tags, stake } = body;
-  let cleanAddress;
-  try{
-    cleanAddress = ethers.utils.getAddress(address);
-  }catch(ex){
+
+  if(!isValidAddress(address)){
     return { isValid: false, data: "Invalid address" };
   }
   if (!title) {
@@ -54,3 +68,21 @@ export const isBodyValidDebate = (body) => {
 
   return { isValid: true, data: { address, title, description, tags, stake } };
 };
+
+export const isBodyValidOpinion = (body)=>{
+  const { debateId, address, content, contentType, stake, pro } = body;
+  if(!debateId){
+    return { isValid: false, data: "Invalid debate id" };
+  }
+  if(!isValidAddress(address)){
+    return { isValid: false, data: "Invalid address" };
+  }
+  if(!contentType){
+    return { isValid: false, data: "Invalid content type" };
+  }
+  if (isNaN(stake)) {
+    return { isValid: false, data: "Invalid stake" };
+  }
+
+  return { isValid: true, data: { debateId, address, content, contentType, stake, pro  } };
+}
