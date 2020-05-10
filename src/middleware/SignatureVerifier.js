@@ -1,32 +1,15 @@
 import { ethers } from "ethers";
 
-export const chargePubKey = async function(req, res, next) {
-  const { pubKey, amount } = req.body;
-  const account = await req.context.models.Account.findOne({
-    pubKey: decodeURI(pubKey)
-  });
-  if (!account) {
-    return res.send({ error: "Account Balance low or missing" });
-  } else {
-    const price = Math.abs(parseFloat(amount));
-    if (account.balance >= price) {
-      account.balance -= price;
-      req.paid = true;
-      await account.save();
-      next();
-    } else {
-      req.paid = false;
-      return res.send({ error: "Account Balance Too Low" });
-    }
-  }
-};
-
 export const verifyPubKeyRoute = async function(req, res, next) {
-  const { pubKey, signature, message } = req.body;
+  const { address, signature, message } = req.body;
+  if(!address || !signature || !message){
+    req.validSignature = false;
+    return res.send(400, { error: "Invalid Signature" });
+  }
   try {
     req.validSignature = await verifyPubKey(
-      decodeURI(pubKey),
-      decodeURI(signature),
+      address,
+      signature,
       message
     );
     next();
@@ -38,16 +21,10 @@ export const verifyPubKeyRoute = async function(req, res, next) {
 };
 
 export const verifyPubKey = async (
-  publicKeyArmored,
+  addressProvided,
   detachedSignature,
   originalData
 ) => {
-  try {
-    //verify
-    const address = ethers.utils.verifyMessage(originalData, detachedSignature);
-    return address === publicKeyArmored;
-  } catch (ex) {
-    console.log(ex);
-    return false;
-  }
+  const address = ethers.utils.verifyMessage(originalData, detachedSignature);
+  return address === addressProvided;
 };

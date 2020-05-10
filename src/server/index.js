@@ -21,11 +21,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// app.use("/debates", routes.debate);
-// app.use("/votes", routes.vote);
-// app.use("/opinions", routes.opinion);
+
 app.use("/payment", routes.payment);
 app.use("/accounts", routes.account);
+app.use("/debates", routes.debate);
+app.use("/opinions", routes.opinion);
+app.use("/tags", routes.tag);
 
 app.get("/", (req, res) => {
   res.json({ status: true });

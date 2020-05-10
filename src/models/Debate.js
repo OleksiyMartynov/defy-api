@@ -39,6 +39,8 @@ const debateSchema = new mongoose.Schema({
   created: { type: Date, default: Date.now },
   //Seconds untill the debate outcome is finalized
   duration: { type: Number, default: DRAW_DURATION },
+  //Flag for query search performance
+  finished: { type: Boolean, default:false}
 });
 debateSchema.methods.getLastUpdateTime = async function getLastUpdateTime(){
   const topOpinionQuery = Opinion.find({debate : this._id}).sort({stake : -1}).limit(1);
@@ -95,6 +97,8 @@ debateSchema.methods.completeDebate = async function completeDebate(){
   }
   const account = await Account.findById(this.creator)
   await Account.updateBalance(account.address, this.stake, "debate_finished", this._id);
+  
+  this.finished = true;
   return this.save();
 }
 debateSchema.set("toJSON", { getters: true, virtuals: true });
