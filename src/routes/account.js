@@ -7,14 +7,14 @@ router.get("/balance", async (req, res, next) => {
   const account = req.query.account;
   if(!isValidAccountAddress(account)){
     res.status(400)
-    return res.send({ message: 'Invalid account address'})
+    return res.send({ error: 'Invalid account address'})
   }
   const accountModel = await req.context.models.Account.accountForAddress(account);
   if (accountModel) {
     return res.send({ balance: accountModel.balance });
   } else {
     res.status(400)
-    return res.send({ message: 'Account address has no balance'})
+    return res.send({ error: 'Account address has no balance'})
   }
 });
 

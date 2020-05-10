@@ -4,7 +4,7 @@ export const verifyPubKeyRoute = async function(req, res, next) {
   const { address, signature, message } = req.body;
   if(!address || !signature || !message){
     req.validSignature = false;
-    return res.send(400, { error: "Invalid Signature" });
+    return res.status(400).send({ error: "Invalid Signature" });
   }
   try {
     req.validSignature = await verifyPubKey(
@@ -14,9 +14,8 @@ export const verifyPubKeyRoute = async function(req, res, next) {
     );
     next();
   } catch (error) {
-    console.log(error);
     req.validSignature = false;
-    return res.send({ error: "Invalid Signature" });
+    return res.status(400).send({ error: "Invalid Signature" });
   }
 };
 

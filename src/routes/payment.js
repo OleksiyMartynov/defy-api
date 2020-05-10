@@ -42,7 +42,7 @@ router.get('/getInvoice', async (req, res) => {
       if(err){
         console.log(err);
         res.status(400)
-        return res.send({ message: 'Unable to create LND invoice'})
+        return res.send({ error: 'Unable to create LND invoice'})
       }else{
         console.log(response.payment_request)
         res.json({ payment_request: response.payment_request});

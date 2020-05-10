@@ -1,5 +1,5 @@
 import "./../jestConfig";
-import {ethers} from "ethers";
+import { ethers } from "ethers";
 const request = require("supertest");
 const app = require("../server/index");
 const { connectDb, removeAllCollections } = require("../utils/DatabaseUtils");
@@ -68,37 +68,147 @@ describe("Debate Endpoints", () => {
     expect(res.body.debate).toHaveProperty("duration");
     expect(res.body.debate).toHaveProperty("finished");
   });
-  //   it("should not post new debate", async () => {
-  //     const res = await request(app).post("/debates/new").send({
-  //         title: "Debate title",
-  //       });
-  //       expect(res.statusCode).toEqual(400);
-  //       expect(res.body).toHaveProperty("post");
-  //   });
-    it("should post new debate", async () => {
-      const title = "New Debate Title";
-      const description = "New Debate Description";
-      const tags=["newTag", "newTag2"];
-      const stake=100;
-      const message = "Hello world";
-      const signature = await MOCK_WALLET.signMessage(message);
-      const res = await request(app).post("/debates/new").send({
-          address:ACCOUNT_EXISTING.address,
-          signature,
-          message,
-          title,
-          description,
-          tags,
-          stake
-        });
-        console.log(res.body)
-        expect(res.statusCode).toEqual(200);
-        expect(res.body).toHaveProperty("debate");
-        expect(res.body.debate.title).toEqual(title);
-        expect(res.body.debate.description).toEqual(description);
-        expect(res.body.debate.stake).toEqual(stake);
-        expect(res.body.debate.tags).toHaveLength(tags.length);
+  it("should fail posting new debate", async () => {
+    const title = "New Debate Title";
+    const description = "New Debate Description";
+    const tags = ["newTag", "newTag2"];
+    const stake = 100;
+    const message = "Hello world";
+    const signature = await MOCK_WALLET.signMessage(message);
+    //unfunded address
+    const res = await request(app).post("/debates/new").send({
+      address: "0xc115bffabaed893a6f7cea402e7338643ced44a6",
+      signature,
+      message,
+      title,
+      description,
+      tags,
+      stake,
     });
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toHaveProperty("error");
+    //wrong signature
+    const res2 = await request(app).post("/debates/new").send({
+      address: ACCOUNT_EXISTING.address,
+      signature: "0x000000000123231231234533423",
+      message,
+      title,
+      description,
+      tags,
+      stake,
+    });
+    expect(res2.statusCode).toEqual(400);
+    expect(res2.body).toHaveProperty("error");
+    //wrong message
+    const res3 = await request(app).post("/debates/new").send({
+      address: ACCOUNT_EXISTING.address,
+      signature,
+      message: "not the initial payload",
+      title,
+      description,
+      tags,
+      stake,
+    });
+    expect(res3.statusCode).toEqual(400);
+    expect(res3.body).toHaveProperty("error");
+    //missing title
+    const res4 = await request(app).post("/debates/new").send({
+      address: ACCOUNT_EXISTING.address,
+      signature,
+      message,
+      description,
+      tags,
+      stake,
+    });
+    expect(res4.statusCode).toEqual(400);
+    expect(res4.body).toHaveProperty("error");
+    //missing description
+    const res5 = await request(app).post("/debates/new").send({
+      address: ACCOUNT_EXISTING.address,
+      signature,
+      message,
+      title,
+      tags,
+      stake,
+    });
+    expect(res5.statusCode).toEqual(400);
+    expect(res5.body).toHaveProperty("error");
+    //wrong tag format
+    const res6 = await request(app)
+      .post("/debates/new")
+      .send({
+        address: ACCOUNT_EXISTING.address,
+        signature,
+        message,
+        title,
+        description,
+        tags: [{ title: "hello" }],
+        stake,
+      });
+    expect(res6.statusCode).toEqual(400);
+    expect(res6.body).toHaveProperty("error");
+    //another wrong tag format
+    const res7 = await request(app)
+      .post("/debates/new")
+      .send({
+        address: ACCOUNT_EXISTING.address,
+        signature,
+        message,
+        title,
+        description,
+        tags: ["#sup"],
+        stake,
+      });
+    expect(res7.statusCode).toEqual(400);
+    expect(res7.body).toHaveProperty("error");
+    //bad stake
+    const res8 = await request(app).post("/debates/new").send({
+      address: ACCOUNT_EXISTING.address,
+      signature,
+      message,
+      title,
+      description,
+      tags,
+      stake: -20,
+    });
+    expect(res8.statusCode).toEqual(400);
+    expect(res8.body).toHaveProperty("error");
+    //another bad stake
+    const res9 = await request(app).post("/debates/new").send({
+      address: ACCOUNT_EXISTING.address,
+      signature,
+      message,
+      title,
+      description,
+      tags,
+      stake: 99999999,
+    });
+    expect(res9.statusCode).toEqual(400);
+    expect(res9.body).toHaveProperty("error");
+  });
+  it("should post new debate", async () => {
+    const title = "New Debate Title";
+    const description = "New Debate Description";
+    const tags = ["newTag", "newTag2"];
+    const stake = 100;
+    const message = "Hello world";
+    const signature = await MOCK_WALLET.signMessage(message);
+    const res = await request(app).post("/debates/new").send({
+      address: ACCOUNT_EXISTING.address,
+      signature,
+      message,
+      title,
+      description,
+      tags,
+      stake,
+    });
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty("debate");
+    expect(res.body.debate.title).toEqual(title);
+    expect(res.body.debate.description).toEqual(description);
+    expect(res.body.debate.stake).toEqual(stake);
+    expect(res.body.debate.tags).toHaveLength(tags.length);
+  });
   afterAll(async () => {
     await removeAllCollections();
   });

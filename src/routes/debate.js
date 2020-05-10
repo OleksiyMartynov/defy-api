@@ -21,13 +21,11 @@ router.get("/", async (req, res) => {
     .sort(sort)
     .exec(function (err, debates) {
       if (err) {
-        res.status(500);
-        res.send({ message: "Failed to get debates" });
+        res.status(500).send({ error: "Failed to get debates" });
       } else {
         req.context.models.Debate.count().exec(function (err, count) {
           if (err) {
-            res.status(500);
-            res.send({ message: "Failed to count debates" });
+            res.status(500).send({ error: "Failed to count debates" });
           } else {
             res.send({
               debates: debates,
@@ -48,36 +46,46 @@ router.get("/:objectId", async (req, res) => {
     ])
     .exec(function (err, debate) {
       if (err) {
-        res.status(500);
-        res.send({ message: "Failed to get debates" });
+        res.status(500).send({ error: "Failed to get debates" });
       } else {
-        return res.send({ debate });
+        res.send({ debate });
       }
     });
 });
 router.post("/new", verifyPubKeyRoute, async (req, res) => {
   if (!req.validSignature) {
-    res.status(400);
-    res.send({ message: "Invalid signature provided" });
+    res.status(400).send({ error: "Invalid signature provided" });
   } else {
     const validationData = isBodyValidDebate(req.body);
     if (validationData.isValid) {
       try {
         const debate = await req.context.models.Debate.createDebate(
-            validationData.data.address,
-            validationData.data.title,
-            validationData.data.description,
-            validationData.data.tags,
-            validationData.data.stake
+          validationData.data.address,
+          validationData.data.title,
+          validationData.data.description,
+          validationData.data.tags,
+          validationData.data.stake
         );
-        res.send({ debate });
+        req.context.models.Debate.findById(debate._id)
+          .select(
+            "creator title description tags stake created duration finished"
+          )
+          .populate([
+            { path: "tags", select: "name" },
+            { path: "creator", select: "address" },
+          ])
+          .exec(function (err, debate) {
+            if (err) {
+              res.status(500).send({ error: "Failed to get debates" });
+            } else {
+              res.send({ debate });
+            }
+          });
       } catch (ex) {
-        console.trace(ex)
-        res.status(400);
-        res.send({ message: ex.message });
+        res.status(400).send({ error: ex.message });
       }
     } else {
-      res.send({ message: validationData.data });
+      res.status(400).send({ error: validationData.data });
     }
   }
 });
