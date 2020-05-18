@@ -11,7 +11,8 @@ router.get("/", async (req, res, next) => {
   }
   const accountModel = await req.context.models.Account.accountForAddress(account);
   if (accountModel) {
-    return res.send({ balance: accountModel.balance });
+    return res.send({ balance: accountModel.balance,
+      lockedBalance: accountModel.lockedBalance });
   } else {
     res.status(400)
     return res.send({ error: 'Account address has no balance'})
