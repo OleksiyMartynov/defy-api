@@ -17,12 +17,20 @@ describe("Debate Endpoints", () => {
     await connectDb(process.env.DATABASE_URL);
     await models.Account.create(ACCOUNT_EXISTING);
     for (let i = 0; i < 25; i++) {
-      await models.Debate.createDebate(
+      const d = await models.Debate.createDebate(
         ACCOUNT_EXISTING.address,
         "Debate Title " + i,
         "Debate Description " + i,
         ["testTag"],
         100
+      );
+      await models.Opinion.createOpinion(
+        ACCOUNT_EXISTING.address,
+        d._id,
+        "www.google.com",
+        "link",
+        100,
+        true
       );
     }
   });
@@ -59,6 +67,8 @@ describe("Debate Endpoints", () => {
     const res = await request(app).get(`/debates/${DEBATE_ID}`).send();
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("debate");
+    expect(res.body).toHaveProperty("history");
+    console.log(JSON.stringify(res.body))
     expect(res.body.debate).toHaveProperty("created");
     expect(res.body.debate).toHaveProperty("creator");
     expect(res.body.debate).toHaveProperty("title");

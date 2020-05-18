@@ -8,15 +8,16 @@ export const isValidAccountAddress = (address) => {
   }
 };
 export const queryToPageInfo = (query) => {
+  const maxPageSize = 100;
   let qPage = query.page ? query.page : 0;
   let qPageSize = query.pageSize ? query.pageSize : 10;
-  let page = Math.max(0, qPage);
-  let pageSize = Math.max(0, qPageSize);
+  let page = Math.max(0, qPage);//limit to zero and up
+  let pageSize = Math.min(maxPageSize, qPageSize);//limit number of items to 100 if over
   return { page, pageSize };
 };
 
 export const queryToFilter = async (query) => {
-  let filterFinished = query.finished ? true : false;
+  let filterFinished = query.finished==="true" ? true : false;
   let sort = {};
   let find = {finished: filterFinished}
   if (query.sortByDate) {
@@ -28,6 +29,7 @@ export const queryToFilter = async (query) => {
     const account = await models.Account.accountForAddress(query.filterCreatorAddress);
     find.creator = account._id;
   }
+  console.log({find, sort})
   return { find, sort };
 };
 

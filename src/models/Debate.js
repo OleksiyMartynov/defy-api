@@ -58,10 +58,10 @@ debateSchema.statics.createDebate = async function createDebate(
   const account = await Account.accountForAddress(address);
   if (!account) {
     throw new Error("Unknown account address");
-  } else if (tags.length > 5) {
+  } else if (tags && tags.length > 5) {
     throw new Error("Too many tags");
   }
-  const tagDocs = await Tag.getOrCreate(tags);
+  const tagDocs = tags?(await Tag.getOrCreate(tags)):[];
 
   const createdDebate = new Debate({
     creator: account._id,
@@ -101,6 +101,7 @@ debateSchema.methods.completeDebate = async function completeDebate(){
   this.finished = true;
   return this.save();
 }
+
 debateSchema.set("toJSON", { getters: true, virtuals: true });
 const Debate = mongoose.model("Debate", debateSchema);
 export default Debate;

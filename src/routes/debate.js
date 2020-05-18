@@ -44,11 +44,12 @@ router.get("/:objectId", async (req, res) => {
       { path: "tags", select: "name" },
       { path: "creator", select: "address" },
     ])
-    .exec(function (err, debate) {
+    .exec(async function (err, debate) {
       if (err) {
         res.status(500).send({ error: "Failed to get debates" });
       } else {
-        res.send({ debate });
+        const history = await req.context.models.Opinion.getPeriodicStakeAgregates(debate._id);
+        res.send({ debate, history });
       }
     });
 });

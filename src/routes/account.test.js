@@ -21,21 +21,21 @@ describe("Account Endpoints", () => {
   });
   it("should not get balance", async () => {
     const res = await request(app)
-      .get(`/accounts/balance?account=${ACCOUNT_ADDRESS_INVALID}`)
+      .get(`/accounts?account=${ACCOUNT_ADDRESS_INVALID}`)
       .send();
     expect(res.statusCode).toEqual(400);
     expect(res.body).toHaveProperty("error");
   });
   it("should not get balance", async () => {
     const res = await request(app)
-      .get(`/accounts/balance?account=${ACCOUNT_ADDRESS_UNKNOWN}`)
+      .get(`/accounts?account=${ACCOUNT_ADDRESS_UNKNOWN}`)
       .send();
     expect(res.statusCode).toEqual(400);
     expect(res.body).toHaveProperty("error");
   });
   it("should get balance", async () => {
     const res = await request(app)
-      .get(`/accounts/balance?account=${ACCOUNT_EXISTING.address}`)
+      .get(`/accounts?account=${ACCOUNT_EXISTING.address}`)
       .send();
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("balance");

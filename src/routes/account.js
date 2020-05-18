@@ -3,7 +3,7 @@ import { verifyPubKeyRoute } from "../middleware/SignatureVerifier";
 import { isValidAccountAddress } from "../utils/ParamValidators";
 const router = Router();
 
-router.get("/balance", async (req, res, next) => {
+router.get("/", async (req, res, next) => {
   const account = req.query.account;
   if(!isValidAccountAddress(account)){
     res.status(400)

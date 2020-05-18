@@ -134,39 +134,50 @@ opinionSchema.methods.completeOpinion = async function completeOpinion() {
   return this.save();
 };
 opinionSchema.statics.getPeriodicStakeAgregates = function getPeriodicStakeAgregates(
-  schemaId,
-  actions = ["opinion_created", "vote_created"],
+  debateId,
   groupTimePeriodMinutes = 60
 ) {
   //todo test and fix
-  return History.aggregate([
+  const query = [
     {
-      $match:
-        $and[
-          { schemaId: mongoose.Types.ObjectId(schemaId) },
-          { $or: actions.map(action=>{
-              return {action}
-          })}
-        ],
+      $match:{
+          debate: mongoose.Types.ObjectId(debateId) ,
+        },
     },
     {
       $group: {
         _id: {
-          year: { $year: "$timestamp" },
-          dayOfYear: { $dayOfYear: "$timestamp" },
-          hour: { $hour: "$timestamp" },
+          year: { $year: "$created" },
+          dayOfYear: { $dayOfYear: "$created" },
+          hour: { $hour: "$created" },
           interval: {
             $subtract: [
-              { $minute: "$timestamp" },
-              { $mod: [{ $minute: "$timestamp" }, groupTimePeriodMinutes] },
+              { $minute: "$created" },
+              { $mod: [{ $minute: "$created" }, groupTimePeriodMinutes] },
             ],
           },
         },
+        totalPro:  { $sum: {"$cond": [ 
+          { "$eq": [ 
+              "$pro", 
+              true
+          ]},
+          "$stake",
+          0 
+      ]} },
+        totalCon: { $sum: {"$cond": [ 
+          { "$eq": [ 
+              "$pro", 
+              false
+          ]},
+          "$stake",
+          0 
+      ]} }
       },
-      totalPro:  { $sum: "$oooufPro" },
-      totalCon: { $sum: "$oooufCon" }
     },
-  ]);
+  ];
+  console.log(JSON.stringify(query))
+  return Opinion.aggregate(query);
 };
 opinionSchema.set("toJSON", { getters: true, virtuals: true });
 const Opinion = mongoose.model("Opinion", opinionSchema);

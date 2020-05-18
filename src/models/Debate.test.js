@@ -96,10 +96,10 @@ describe("Debate Model", () => {
     expect(debate).toHaveProperty("stake", stake);
     expect(debate.tags.length).toBe(3);
     //check account balance
-    const newBalance = (
-      await models.Account.accountForAddress(ACCOUNT_EXISTING.address)
-    ).balance;
+    const latestAccountData = await models.Account.accountForAddress(ACCOUNT_EXISTING.address);
+    const newBalance = latestAccountData.balance;
     expect(initialBalance).toBe(newBalance + stake);
+    expect(latestAccountData.lockedBalance).toBe(stake);
     //check tags
     const tagDocs = await models.Tag.find({ debates: debate._id });
     expect(tagDocs.length).toBe(3);
@@ -142,14 +142,15 @@ describe("Debate Model", () => {
       ACCOUNT_EXISTING.address
     );
     const initialBalance = accountDoc.balance;
+    const initialLockedBalance = accountDoc.lockedBalance;
     const timestamp = Date.now();
     await sleep(duration + 1);
     await debate.completeDebate();
-    const newBalance = (
-      await models.Account.accountForAddress(ACCOUNT_EXISTING.address)
-    ).balance;
+    const latestAccountData = await models.Account.accountForAddress(ACCOUNT_EXISTING.address);
+    const newBalance = latestAccountData.balance;
 
     expect(newBalance).toBe(initialBalance + stake);
+    expect(latestAccountData.lockedBalance).toBe(initialLockedBalance - stake);
 
   });
   it("should not be able to finish debate twice", async () => {

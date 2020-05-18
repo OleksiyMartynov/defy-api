@@ -12,7 +12,13 @@ const accountSchema = new mongoose.Schema({
   },
   //balance
   balance: { type: Number, default: 0, required: true },
+  //locked balance, in debate or opinion 
+  lockedBalance: { type: Number, default: 0, required: true }
 });
+
+accountSchema.methods.getLocked = async function getLocked() {
+  History.aggregate({$match: {}})
+}
 accountSchema.statics.accountForAddress = function accountForAddress(address) {
   return this.findOne({ address: address });
 };
@@ -50,6 +56,15 @@ accountSchema.statics.updateBalance = async function updateBalance(
 
   if ((account.balance + delta) < 0) {
     throw new Error("Account does not have enough funds");
+  }
+
+  if(reason === "debate_created" ||
+    reason === "opinion_created" ||
+    reason === "vote_created" ||
+    reason === "debate_finished" ||
+    reason === "opinion_finished" ||
+    reason === "vote_finished" ){
+      account.lockedBalance -= delta;
   }
   account.balance += delta;
   
