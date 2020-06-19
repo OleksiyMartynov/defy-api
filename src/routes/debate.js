@@ -49,7 +49,8 @@ router.get("/:objectId", async (req, res) => {
         res.status(500).send({ error: "Failed to get debates" });
       } else {
         const history = await req.context.models.Opinion.getPeriodicStakeAgregates(debate._id);
-        res.send({ debate, history });
+        const totals = await req.context.models.Opinion.getTotals(debate._id);
+        res.send({ debate, history, totals });
       }
     });
 });

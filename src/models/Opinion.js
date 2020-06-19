@@ -37,7 +37,7 @@ const opinionSchema = new mongoose.Schema({
   //dont set manually
   created: { type: Date, default: Date.now, required: true },
   //Flag for query search performance
-  finished: { type: Boolean, default:false}
+  finished: { type: Boolean, default: false },
 });
 
 opinionSchema.statics.createVote = async function createVote(
@@ -79,11 +79,15 @@ opinionSchema.statics.createOpinion = async function createOpinion(
   if (!contentTypeHelper.isContentValid(content)) {
     throw new Error("Invalid content format");
   }
-  if ((await debate.isPastEndTime())) {
+  if (await debate.isPastEndTime()) {
     throw new Error("Cannot create opinion past end time");
   }
 
-  const isStakeValid = await contentTypeHelper.isStakeValid(this, stake, debateId);
+  const isStakeValid = await contentTypeHelper.isStakeValid(
+    this,
+    stake,
+    debateId
+  );
 
   if (!isStakeValid) {
     throw new Error("Stake too low for " + contentType);
@@ -133,6 +137,23 @@ opinionSchema.methods.completeOpinion = async function completeOpinion() {
   this.finished = true;
   return this.save();
 };
+opinionSchema.statics.getTotals = function getTotals(debateId) {
+  const query = [
+    {
+      $match: {
+        debate: mongoose.Types.ObjectId(debateId),
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalPro: { $sum: { $cond: [{ $eq: ["$pro", true] }, "$stake", 0] } },
+        totalCon: { $sum: { $cond: [{ $eq: ["$pro", false] }, "$stake", 0] } },
+      },
+    },
+  ];
+  return Opinion.aggregate(query);
+};
 opinionSchema.statics.getPeriodicStakeAgregates = function getPeriodicStakeAgregates(
   debateId,
   groupTimePeriodMinutes = 60
@@ -140,9 +161,9 @@ opinionSchema.statics.getPeriodicStakeAgregates = function getPeriodicStakeAgreg
   //todo test and fix
   const query = [
     {
-      $match:{
-          debate: mongoose.Types.ObjectId(debateId) ,
-        },
+      $match: {
+        debate: mongoose.Types.ObjectId(debateId),
+      },
     },
     {
       $group: {
@@ -157,26 +178,12 @@ opinionSchema.statics.getPeriodicStakeAgregates = function getPeriodicStakeAgreg
             ],
           },
         },
-        totalPro:  { $sum: {"$cond": [ 
-          { "$eq": [ 
-              "$pro", 
-              true
-          ]},
-          "$stake",
-          0 
-      ]} },
-        totalCon: { $sum: {"$cond": [ 
-          { "$eq": [ 
-              "$pro", 
-              false
-          ]},
-          "$stake",
-          0 
-      ]} }
+        totalPro: { $sum: { $cond: [{ $eq: ["$pro", true] }, "$stake", 0] } },
+        totalCon: { $sum: { $cond: [{ $eq: ["$pro", false] }, "$stake", 0] } },
       },
     },
   ];
-  console.log(JSON.stringify(query))
+  console.log(JSON.stringify(query));
   return Opinion.aggregate(query);
 };
 opinionSchema.set("toJSON", { getters: true, virtuals: true });
