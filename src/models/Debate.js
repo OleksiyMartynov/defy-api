@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import { DRAW_DURATION } from "./ModelConstants";
 import Account from "./Account";
 import History from "./History";
-import Opinion from "./Opinion";
 import Tag from "./Tag";
 
 const debateSchema = new mongoose.Schema({
@@ -37,16 +36,19 @@ const debateSchema = new mongoose.Schema({
   stake: { type: Number, min: 100, required: true },
   //dont set manually
   created: { type: Date, default: Date.now },
-  //Seconds untill the debate outcome is finalized
+  updated: { type: Date, default: Date.now },
+  totalPro: { type: Number, default: 0 },
+  totalCon: { type: Number, default: 0 },
+  //Seconds untill the debate outcome is finalized at updated+duration
   duration: { type: Number, default: DRAW_DURATION },
   //Flag for query search performance
   finished: { type: Boolean, default:false}
 });
-debateSchema.methods.getLastUpdateTime = async function getLastUpdateTime(){
-  const topOpinionQuery = Opinion.find({debate : this._id}).sort({stake : -1}).limit(1);
-  const topOpinion = await topOpinionQuery.exec();
-  return topOpinion[0]? topOpinion[0].created: this.created;
-};
+// debateSchema.methods.getLastUpdateTime = async function getLastUpdateTime(){
+//   const topOpinionQuery = Opinion.find({debate : this._id}).sort({stake : -1}).limit(1);
+//   const topOpinion = await topOpinionQuery.exec();
+//   return topOpinion[0]? topOpinion[0].created: this.created;
+// };
 debateSchema.statics.createDebate = async function createDebate(
   address,
   title,
@@ -81,11 +83,20 @@ debateSchema.statics.createDebate = async function createDebate(
 };
 debateSchema.methods.isPastEndTime = async function isPastEndTime(){
   const now = new Date();
-  const endTime = (await this.getLastUpdateTime()).getTime() + this.duration;
+  const endTime = this.updated.getTime() + this.duration;
   return now.getTime() > endTime;
 }
 debateSchema.methods.isCreatorPaid = function isCreatorPaid(){
   return History.findOne({account:this.creator, schemaId:this._id, action:"debate_finished"})
+}
+debateSchema.methods.onOpinionCreated = async function onOpinionCreated(pro, stake){
+  this.updated = new Date();
+  if(pro){
+    this.totalPro+=stake;
+  }else{
+    this.totalCon+=stake;
+  }
+  return this.save();
 }
 debateSchema.methods.completeDebate = async function completeDebate(){
   if(!(await this.isPastEndTime())){

@@ -102,6 +102,7 @@ opinionSchema.statics.createOpinion = async function createOpinion(
     pro,
   });
 
+  await debate.onOpinionCreated(pro, stake);
   await Account.updateBalance(
     account.address,
     -stake,
@@ -169,7 +170,8 @@ opinionSchema.statics.getPeriodicStakeAgregates = function getPeriodicStakeAgreg
       $group: {
         _id: {
           year: { $year: "$created" },
-          dayOfYear: { $dayOfYear: "$created" },
+          day: { $dayOfMonth: "$created" },
+          month: { $month: "$created" },
           hour: { $hour: "$created" },
           interval: {
             $subtract: [
@@ -182,6 +184,9 @@ opinionSchema.statics.getPeriodicStakeAgregates = function getPeriodicStakeAgreg
         totalCon: { $sum: { $cond: [{ $eq: ["$pro", false] }, "$stake", 0] } },
       },
     },
+    {
+      $sort : { "_id.year": 1, "_id.day": 1, "_id.month": 1, "_id.hour": 1  }
+    }
   ];
   console.log(JSON.stringify(query));
   return Opinion.aggregate(query);
