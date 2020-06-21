@@ -5,14 +5,7 @@ import {
   queryToFilter,
   isBodyValidDebate,
 } from "../utils/ParamValidators";
-import {
-  expandMap,
-  arrayOfNumbers,
-  nowSeconds,
-  hoursSince,
-  componentsToDate,
-  dateToComponents,
-} from "../utils/Common";
+import { expandDebateAggregates } from "../utils/DatabaseUtils";
 const router = Router();
 
 router.get("/", async (req, res) => {
@@ -66,40 +59,8 @@ router.get("/:objectId", async (req, res) => {
         const history = await req.context.models.Opinion.getPeriodicStakeAgregates(
           debate._id
         );
-        const globalTotals = { totalCon: 0, totalPro: 0 };
-        const historyTotals = history.map((item) => {
-          globalTotals.totalPro += item.totalPro;
-          globalTotals.totalCon += item.totalCon;
-          return { ...globalTotals, ...item._id };
-        });
-        // todo: clean up section below
-        console.log(debate.created);
-        const hoursSinceDebateCreated = hoursSince(debate.created.getTime());
-        console.log(hoursSinceDebateCreated);
-        const timePeriod = arrayOfNumbers(hoursSinceDebateCreated+2);
-        console.log(timePeriod);
-        console.log(historyTotals)
-        const expandedHours = expandMap(
-          { totalPro: 0, totalCon: 0, date:debate.created },
-          timePeriod,
-          historyTotals.reduce(function (map, obj) {
-            
-            const date = componentsToDate(
-              obj.year,
-              obj.month - 1,
-              obj.day,
-              obj.hour
-            );
-            console.log(date);
-            console.log(new Date().toUTCString())
-            const key = hoursSince(date.getTime());
-            console.log(key);
-            console.log({totalPro:obj.totalPro,totalCon:obj.totalCon});
-            map[key] = { date, ...obj };
-            return map;
-          }, {})
-        );
-        res.send({ debate, history: expandedHours.reverse() });
+        const expandedHours = expandDebateAggregates(debate, history);
+        res.send({ debate, history: expandedHours});
       }
     });
 });

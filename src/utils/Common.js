@@ -3,17 +3,13 @@ export const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 export const expandMap = (initial, keys, itemsMap) => {
     let lastKnown = initial; 
     return keys.map(key=>{
-        console.log(itemsMap[key])
         const out = key in itemsMap ? itemsMap[key] : lastKnown;
-        
         lastKnown = out;
-        console.log(key+" Last known:")
-        console.log(lastKnown.date);
         return out;
     });
 };
 
-export const arrayOfNumbers = (N, offset) => Array.apply(null, {length: N}).map(Number.call, Number);
+export const arrayOfNumbers = (N) => Array.apply(null, {length: N}).map(Number.call, Number);
 
 export const nowSeconds = () => (new Date()).getTime()/1000;
 
