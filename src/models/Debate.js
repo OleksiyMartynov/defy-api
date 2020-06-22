@@ -39,7 +39,7 @@ const debateSchema = new mongoose.Schema({
   updated: { type: Date, default: Date.now },
   totalPro: { type: Number, default: 0 },
   totalCon: { type: Number, default: 0 },
-  //Seconds untill the debate outcome is finalized at updated+duration
+  //Seconds untill the debate outcome is finalized(endTime=updated+duration)
   duration: { type: Number, default: DRAW_DURATION },
   //Flag for query search performance
   finished: { type: Boolean, default:false}

@@ -33,7 +33,8 @@ export const expandDebateAggregates = (debate, history) => {
     return { ...globalTotals, ...item._id };
   });
 
-  const hoursSinceDebateCreated = hoursSince(debate.created.getTime());
+  const hoursSinceEnd = hoursSince(new Date(debate.updated.getTime() + debate.duration));
+  const hoursSinceDebateCreated = hoursSince(debate.created.getTime()) - Math.max(hoursSinceEnd, 0);
 
   //array of hours since debate creation
   const timePeriod = arrayOfNumbers(hoursSinceDebateCreated + 1);
@@ -47,7 +48,7 @@ export const expandDebateAggregates = (debate, history) => {
     //convert history array to a map with hours-since-creation as key
     historyTotals.reduce(function (map, obj) {
       const date = componentsToDate(obj.year, obj.month - 1, obj.day, obj.hour);
-      const key = hoursSince(date.getTime());
+      const key = hoursSince(date.getTime()) - Math.max(hoursSinceEnd, 0);
       map[key] = { date, ...obj };
       return map;
     }, {})

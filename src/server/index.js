@@ -27,6 +27,7 @@ app.use("/accounts", routes.account);
 app.use("/debates", routes.debate);
 app.use("/opinions", routes.opinion);
 app.use("/tags", routes.tag);
+app.use("/meta", routes.meta);
 
 app.get("/", (req, res) => {
   res.json({ status: true });

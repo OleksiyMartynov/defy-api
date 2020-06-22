@@ -26,7 +26,8 @@
     "ethers": "^4.0.47",
     "express": "^4.17.1",
     "grpc": "^1.24.2",
-    "mongoose": "^5.8.11"
+    "mongoose": "^5.8.11",
+    "url-metadata": "^2.4.0"
   },
   "jest": {
     "testEnvironment": "node",
