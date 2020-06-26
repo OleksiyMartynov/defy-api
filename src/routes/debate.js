@@ -6,6 +6,7 @@ import {
   isBodyValidDebate,
 } from "../utils/ParamValidators";
 import { expandDebateAggregates } from "../utils/DatabaseUtils";
+import { MIN_VOTE_STAKE } from "../models/ModelConstants";
 const router = Router();
 
 router.get("/", async (req, res) => {
@@ -60,7 +61,10 @@ router.get("/:objectId", async (req, res) => {
           debate._id
         );
         const expandedHours = expandDebateAggregates(debate, history);
-        res.send({ debate, history: expandedHours});
+
+        var topOpinion = await req.context.models.Opinion.find({debate : debate._id}).sort({stake : -1}).limit(1).exec();
+        const prevMaxStake = topOpinion[0]? topOpinion[0].stake : MIN_VOTE_STAKE;
+        res.send({ debate, history: expandedHours, rules:{minOpinionCreationStake: prevMaxStake+1, minVoteCreationStake:MIN_VOTE_STAKE}});
       }
     });
 });
