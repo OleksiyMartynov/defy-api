@@ -14,7 +14,7 @@ router.get("/", async (req, res) => {
   const { find, sort } = await queryToFilter(req.query);
   req.context.models.Debate.find(find)
     .select(
-      "creator title description tags stake created duration finished updated totalPro totalCon"
+      "creator title description tags stake created duration finished updated totalPro totalCon totalLocked"
     )
     .populate([
       { path: "tags", select: "name" },
@@ -62,9 +62,23 @@ router.get("/:objectId", async (req, res) => {
         );
         const expandedHours = expandDebateAggregates(debate, history);
 
-        var topOpinion = await req.context.models.Opinion.find({debate : debate._id}).sort({stake : -1}).limit(1).exec();
-        const prevMaxStake = topOpinion[0]? topOpinion[0].stake : MIN_VOTE_STAKE;
-        res.send({ debate, history: expandedHours, rules:{minOpinionCreationStake: prevMaxStake+1, minVoteCreationStake:MIN_VOTE_STAKE}});
+        var topOpinion = await req.context.models.Opinion.find({
+          debate: debate._id,
+        })
+          .sort({ stake: -1 })
+          .limit(1)
+          .exec();
+        const prevMaxStake = topOpinion[0]
+          ? topOpinion[0].stake
+          : MIN_VOTE_STAKE;
+        res.send({
+          debate,
+          history: expandedHours,
+          rules: {
+            minOpinionCreationStake: prevMaxStake + 1,
+            minVoteCreationStake: MIN_VOTE_STAKE,
+          },
+        });
       }
     });
 });
@@ -80,7 +94,7 @@ router.post("/new", verifyPubKeyRoute, async (req, res) => {
           validationData.data.title,
           validationData.data.description,
           validationData.data.tags,
-          validationData.data.stake
+          parseInt(validationData.data.stake, 10)
         );
         req.context.models.Debate.findById(debate._id)
           .select(

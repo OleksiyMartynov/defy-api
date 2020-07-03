@@ -24,7 +24,6 @@ export const removeAllCollections = async () => {
  * @param history Array of hourly grouped activity
  */
 export const expandDebateAggregates = (debate, history) => {
-
   // recalculate history as rolling sum
   const globalTotals = { totalCon: 0, totalPro: 0 };
   const historyTotals = history.map((item) => {
@@ -33,8 +32,11 @@ export const expandDebateAggregates = (debate, history) => {
     return { ...globalTotals, ...item._id };
   });
 
-  const hoursSinceEnd = hoursSince(new Date(debate.updated.getTime() + debate.duration));
-  const hoursSinceDebateCreated = hoursSince(debate.created.getTime()) - Math.max(hoursSinceEnd, 0);
+  const hoursSinceEnd = hoursSince(
+    new Date(debate.updated.getTime() + debate.duration)
+  );
+  const hoursSinceDebateCreated =
+    hoursSince(debate.created.getTime()) - Math.max(hoursSinceEnd, 0) + 1; // todo: might not need + 1
 
   //array of hours since debate creation
   const timePeriod = arrayOfNumbers(hoursSinceDebateCreated + 1);

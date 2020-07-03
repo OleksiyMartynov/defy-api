@@ -34,6 +34,8 @@ const debateSchema = new mongoose.Schema({
   ],
   //amount of sats locked up for the debate creation
   stake: { type: Number, min: 100, required: true },
+  //amount of sats locked up for all opinions and debate creation
+  totalLocked: { type: Number, min: 100, required: true },
   //dont set manually
   created: { type: Date, default: Date.now },
   updated: { type: Date, default: Date.now },
@@ -42,7 +44,7 @@ const debateSchema = new mongoose.Schema({
   //Seconds untill the debate outcome is finalized(endTime=updated+duration)
   duration: { type: Number, default: DRAW_DURATION },
   //Flag for query search performance
-  finished: { type: Boolean, default:false}
+  finished: { type: Boolean, default: false },
 });
 // debateSchema.methods.getLastUpdateTime = async function getLastUpdateTime(){
 //   const topOpinionQuery = Opinion.find({debate : this._id}).sort({stake : -1}).limit(1);
@@ -55,7 +57,7 @@ debateSchema.statics.createDebate = async function createDebate(
   description,
   tags,
   stake,
-  duration=DRAW_DURATION
+  duration = DRAW_DURATION
 ) {
   const account = await Account.accountForAddress(address);
   if (!account) {
@@ -63,7 +65,7 @@ debateSchema.statics.createDebate = async function createDebate(
   } else if (tags && tags.length > 5) {
     throw new Error("Too many tags");
   }
-  const tagDocs = tags?(await Tag.getOrCreate(tags)):[];
+  const tagDocs = tags ? await Tag.getOrCreate(tags) : [];
 
   const createdDebate = new Debate({
     creator: account._id,
@@ -71,47 +73,66 @@ debateSchema.statics.createDebate = async function createDebate(
     description,
     tags: tagDocs.map((t) => t._id),
     stake: stake,
-    duration
+    totalLocked: stake,
+    duration,
   });
 
   tagDocs.forEach((tag) => {
     tag.debates.push(createdDebate._id);
     tag.save();
   });
-  await Account.updateBalance(account.address, -stake, "debate_created", createdDebate._id);
+  await Account.updateBalance(
+    account.address,
+    -stake,
+    "debate_created",
+    createdDebate._id
+  );
   return createdDebate.save();
 };
-debateSchema.methods.isPastEndTime = async function isPastEndTime(){
+debateSchema.methods.isPastEndTime = async function isPastEndTime() {
   const now = new Date();
   const endTime = this.updated.getTime() + this.duration;
   return now.getTime() > endTime;
-}
-debateSchema.methods.isCreatorPaid = function isCreatorPaid(){
-  return History.findOne({account:this.creator, schemaId:this._id, action:"debate_finished"})
-}
-debateSchema.methods.onOpinionCreated = async function onOpinionCreated(pro, stake){
+};
+debateSchema.methods.isCreatorPaid = function isCreatorPaid() {
+  return History.findOne({
+    account: this.creator,
+    schemaId: this._id,
+    action: "debate_finished",
+  });
+};
+debateSchema.methods.onOpinionCreated = async function onOpinionCreated(
+  pro,
+  stake
+) {
   this.updated = new Date();
-  if(pro){
-    this.totalPro+=stake;
-  }else{
-    this.totalCon+=stake;
+  if (pro) {
+    this.totalPro += stake;
+  } else {
+    this.totalCon += stake;
   }
+  this.totalLocked = this.stake + this.totalPro + this.totalCon;
   return this.save();
-}
-debateSchema.methods.completeDebate = async function completeDebate(){
-  if(!(await this.isPastEndTime())){
+};
+debateSchema.methods.completeDebate = async function completeDebate() {
+  if (!(await this.isPastEndTime())) {
     throw new Error("Cannot complete debate before end time");
   }
   const isCreatorPaid = await this.isCreatorPaid();
-  if(isCreatorPaid){
+  if (isCreatorPaid) {
     throw new Error("Debate already completed");
   }
-  const account = await Account.findById(this.creator)
-  await Account.updateBalance(account.address, this.stake, "debate_finished", this._id);
-  
+  const account = await Account.findById(this.creator);
+  await Account.updateBalance(
+    account.address,
+    this.stake,
+    "debate_finished",
+    this._id
+  );
+
   this.finished = true;
   return this.save();
-}
+};
 
 debateSchema.set("toJSON", { getters: true, virtuals: true });
 const Debate = mongoose.model("Debate", debateSchema);

@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { verifyPubKeyRoute } from "../middleware/SignatureVerifier";
-import { queryToPageInfo, queryToFilter, isBodyValidOpinion } from "../utils/ParamValidators";
+import {
+  queryToPageInfo,
+  queryToFilter,
+  isBodyValidOpinion,
+} from "../utils/ParamValidators";
 const router = Router();
 
 router.get("/", async (req, res) => {
@@ -51,11 +55,10 @@ router.post("/new", verifyPubKeyRoute, async (req, res) => {
           validationData.data.debateId,
           validationData.data.content,
           validationData.data.contentType,
-          validationData.data.stake,
+          parseInt(validationData.data.stake, 10),
           validationData.data.pro
         );
-        req.context.models.Opinion
-          .findById(opinion._id)
+        req.context.models.Opinion.findById(opinion._id)
           .select("debate creator contentType content stake pro created")
           .populate([{ path: "creator", select: "address" }])
           .exec(function (err, opinion) {

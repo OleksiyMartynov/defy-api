@@ -11,42 +11,47 @@ export const queryToPageInfo = (query) => {
   const maxPageSize = 100;
   let qPage = query.page ? query.page : 0;
   let qPageSize = query.pageSize ? query.pageSize : 10;
-  let page = Math.max(0, qPage);//limit to zero and up
-  let pageSize = Math.min(maxPageSize, qPageSize);//limit number of items to 100 if over
+  let page = Math.max(0, qPage); //limit to zero and up
+  let pageSize = Math.min(maxPageSize, qPageSize); //limit number of items to 100 if over
   return { page, pageSize };
 };
 
 export const queryToFilter = async (query) => {
-  let filterFinished = query.finished==="true" ? true : false;
+  let filterFinished = query.finished === "true" ? true : false;
   let sort = {};
-  let find = {finished: filterFinished}
+  let find = { finished: filterFinished };
   if (query.sortByDate) {
     sort.created = "desc";
   } else if (query.sortBySize) {
-    sort.stake = "desc";
+    sort.totalLocked = "desc";
   }
-  if(query.filterCreatorAddress && isValidAccountAddress(query.filterCreatorAddress)){
-    const account = await models.Account.accountForAddress(query.filterCreatorAddress);
+  if (
+    query.filterCreatorAddress &&
+    isValidAccountAddress(query.filterCreatorAddress)
+  ) {
+    const account = await models.Account.accountForAddress(
+      query.filterCreatorAddress
+    );
     find.creator = account._id;
   }
-  console.log({find, sort})
+  console.log({ find, sort });
   return { find, sort };
 };
 
-export const isValidAddress = (address) =>{
-  try{
-    if(ethers.utils.getAddress(address)){
+export const isValidAddress = (address) => {
+  try {
+    if (ethers.utils.getAddress(address)) {
       return true;
     }
-  }catch(ex){
+  } catch (ex) {
     return false;
   }
-}
+};
 
 export const isBodyValidDebate = (body) => {
   const { address, title, description, tags, stake } = body;
 
-  if(!isValidAddress(address)){
+  if (!isValidAddress(address)) {
     return { isValid: false, data: "Invalid address" };
   }
   if (!title) {
@@ -71,20 +76,23 @@ export const isBodyValidDebate = (body) => {
   return { isValid: true, data: { address, title, description, tags, stake } };
 };
 
-export const isBodyValidOpinion = (body)=>{
+export const isBodyValidOpinion = (body) => {
   const { debateId, address, content, contentType, stake, pro } = body;
-  if(!debateId){
+  if (!debateId) {
     return { isValid: false, data: "Invalid debate id" };
   }
-  if(!isValidAddress(address)){
+  if (!isValidAddress(address)) {
     return { isValid: false, data: "Invalid address" };
   }
-  if(!contentType){
+  if (!contentType) {
     return { isValid: false, data: "Invalid content type" };
   }
   if (isNaN(stake)) {
     return { isValid: false, data: "Invalid stake" };
   }
 
-  return { isValid: true, data: { debateId, address, content, contentType, stake, pro  } };
-}
+  return {
+    isValid: true,
+    data: { debateId, address, content, contentType, stake, pro },
+  };
+};
