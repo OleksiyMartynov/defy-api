@@ -102,7 +102,7 @@ opinionSchema.statics.createOpinion = async function createOpinion(
     pro,
   });
 
-  await debate.onOpinionCreated(pro, stake);
+  await debate.onOpinionCreated(pro, stake, contentType);
   await Account.updateBalance(
     account.address,
     -stake,
@@ -185,8 +185,8 @@ opinionSchema.statics.getPeriodicStakeAgregates = function getPeriodicStakeAgreg
       },
     },
     {
-      $sort : { "_id.year": 1, "_id.day": 1, "_id.month": 1, "_id.hour": 1  }
-    }
+      $sort: { "_id.year": 1, "_id.day": 1, "_id.month": 1, "_id.hour": 1 },
+    },
   ];
   console.log(JSON.stringify(query));
   return Opinion.aggregate(query);

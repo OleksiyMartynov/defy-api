@@ -103,9 +103,12 @@ debateSchema.methods.isCreatorPaid = function isCreatorPaid() {
 };
 debateSchema.methods.onOpinionCreated = async function onOpinionCreated(
   pro,
-  stake
+  stake,
+  opinionType
 ) {
-  this.updated = new Date();
+  if (opinionType === "link") {
+    this.updated = new Date();
+  }
   if (pro) {
     this.totalPro += stake;
   } else {
