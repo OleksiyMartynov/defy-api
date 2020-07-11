@@ -12,6 +12,7 @@ export const HISTORY_EVENT_TYPES = [
 export const MIN_OPINION_START_STAKE = 100;
 export const MIN_VOTE_STAKE = 1;
 export const DRAW_DURATION = 24 * 60 * 60 * 1000;
+export const DRAW_DESCRIPTION_PREVIEW_LENGTH = 200;
 export const OPINION_TYPES = {
   link: {
     name: "link",
@@ -21,14 +22,19 @@ export const OPINION_TYPES = {
       return content.match(regex);
     },
     isStakeValid: async function (schema, stake, debateId) {
-      var topOpinionQuery = schema.find({debate : debateId}).sort({stake : -1}).limit(1);
+      var topOpinionQuery = schema
+        .find({ debate: debateId })
+        .sort({ stake: -1 })
+        .limit(1);
       const topOpinion = await topOpinionQuery.exec();
 
-      const prevMaxStake = topOpinion[0]? topOpinion[0].stake: (MIN_OPINION_START_STAKE-1);
-      return prevMaxStake<stake;
+      const prevMaxStake = topOpinion[0]
+        ? topOpinion[0].stake
+        : MIN_OPINION_START_STAKE - 1;
+      return prevMaxStake < stake;
     },
-    createdEvent:"opinion_created",
-    finishedEvent:"opinion_finished"
+    createdEvent: "opinion_created",
+    finishedEvent: "opinion_finished",
   },
   vote: {
     name: "vote",
@@ -36,9 +42,9 @@ export const OPINION_TYPES = {
       return !content;
     },
     isStakeValid: async function (schema, stake, debateId) {
-      return stake>=MIN_VOTE_STAKE;
+      return stake >= MIN_VOTE_STAKE;
     },
-    createdEvent:"vote_created",
-    finishedEvent:"vote_finished"
-  }
+    createdEvent: "vote_created",
+    finishedEvent: "vote_finished",
+  },
 };

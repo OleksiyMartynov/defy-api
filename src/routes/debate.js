@@ -4,14 +4,20 @@ import {
   queryToPageInfo,
   queryToFilter,
   isBodyValidDebate,
+  addressToId,
 } from "../utils/ParamValidators";
 import { expandDebateAggregates } from "../utils/DatabaseUtils";
-import { MIN_VOTE_STAKE } from "../models/ModelConstants";
+import {
+  MIN_VOTE_STAKE,
+  DRAW_DESCRIPTION_PREVIEW_LENGTH,
+} from "../models/ModelConstants";
+import { trimStringToLength } from "../utils/Common";
 const router = Router();
 
 router.get("/", async (req, res) => {
   const { page, pageSize } = queryToPageInfo(req.query);
   const { find, sort } = await queryToFilter(req.query);
+  const { callerAddress } = req.query;
   req.context.models.Debate.find(find)
     .select(
       "creator title description tags stake created duration finished updated totalPro totalCon totalLocked"
@@ -27,15 +33,45 @@ router.get("/", async (req, res) => {
       if (err) {
         res.status(500).send({ error: "Failed to get debates" });
       } else {
-        req.context.models.Debate.countDocuments(find).exec(function (
+        req.context.models.Debate.countDocuments(find).exec(async function (
           err,
           count
         ) {
           if (err) {
             res.status(500).send({ error: "Failed to count debates" });
           } else {
+            const callerAddressId = await addressToId(callerAddress);
+            const debatesList = [];
+            for (const d of debates) {
+              let opinionsByCaller = 0;
+              if (callerAddressId) {
+                opinionsByCaller = await req.context.models.Opinion.countDocuments(
+                  {
+                    debate: d._id,
+                    creator: callerAddressId,
+                  }
+                );
+              }
+              const totalOpinions = await req.context.models.Opinion.countDocuments(
+                {
+                  debate: d._id,
+                }
+              );
+
+              const out = { ...d.toJSON() };
+              out.createdByYou = d.creator.address === callerAddress;
+              out.opinionsByYou = opinionsByCaller;
+              out.totalOpinions = totalOpinions;
+
+              out.description = trimStringToLength(
+                d.description,
+                DRAW_DESCRIPTION_PREVIEW_LENGTH
+              );
+              delete out.creator;
+              debatesList.push(out);
+            }
             res.send({
-              debates: debates,
+              debates: debatesList,
               page: page,
               pages: Math.ceil(count / pageSize),
             });

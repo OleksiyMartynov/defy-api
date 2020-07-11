@@ -10,7 +10,7 @@ const router = Router();
 router.get("/", async (req, res) => {
   const { page, pageSize } = queryToPageInfo(req.query);
   const { find, sort } = await queryToFilter(req.query);
-  const { debateId } = req.query;
+  const { debateId, callerAddress } = req.query;
   if (!debateId) {
     res.status(400).send({ error: "Missing debate id" });
   } else {
@@ -32,8 +32,16 @@ router.get("/", async (req, res) => {
             if (err) {
               res.status(500).send({ error: "Failed to count opinions" });
             } else {
+              const opinionsList = opinions.map((op) => {
+                const out = { ...op.toJSON() };
+                out.createdByYou = op.creator.address === callerAddress;
+                delete out.creator;
+                delete out._id;
+                delete out.debate;
+                return out;
+              });
               res.send({
-                opinions: opinions,
+                opinions: opinionsList,
                 page: page,
                 pages: Math.ceil(count / pageSize),
               });

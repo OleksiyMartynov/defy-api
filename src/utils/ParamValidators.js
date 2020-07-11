@@ -96,3 +96,8 @@ export const isBodyValidOpinion = (body) => {
     data: { debateId, address, content, contentType, stake, pro },
   };
 };
+
+export const addressToId = async (address) => {
+  const account = await models.Account.accountForAddress(address);
+  return account._id ? account._id : null;
+};
