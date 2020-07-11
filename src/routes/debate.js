@@ -81,6 +81,7 @@ router.get("/", async (req, res) => {
     });
 });
 router.get("/:objectId", async (req, res) => {
+  const { callerAddress } = req.query;
   req.context.models.Debate.findById(req.params.objectId)
     .select(
       "creator title description tags stake created duration finished updated totalPro totalCon"
@@ -107,8 +108,13 @@ router.get("/:objectId", async (req, res) => {
         const prevMaxStake = topOpinion[0]
           ? topOpinion[0].stake
           : MIN_VOTE_STAKE;
+        const outDebate = debate.toJSON();
+        console.log(callerAddress + "===" + debate.creator.address);
+        outDebate.createdByYou = callerAddress === debate.creator.address;
+        delete outDebate.creator;
+        delete outDebate._id;
         res.send({
-          debate,
+          debate: outDebate,
           history: expandedHours,
           rules: {
             minOpinionCreationStake: prevMaxStake + 1,

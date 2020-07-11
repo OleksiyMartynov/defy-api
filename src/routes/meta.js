@@ -3,12 +3,12 @@ import urlMetadata from "url-metadata";
 const router = Router();
 
 router.get("/", async (req, res) => {
-  urlMetadata(req.query.url, {timeout:2000}).then(
+  urlMetadata(req.query.url, { timeout: 2000 }).then(
     function (metadata) {
-      res.send({ metadata});
+      res.send({ metadata });
     },
     function (error) {
-        res.status(500).send({ error: "Failed to get metadata" });
+      res.status(500).send({ error: "Failed to get metadata", reason: error });
     }
   );
 });
