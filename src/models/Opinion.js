@@ -38,6 +38,8 @@ const opinionSchema = new mongoose.Schema({
   created: { type: Date, default: Date.now, required: true },
   //Flag for query search performance
   finished: { type: Boolean, default: false },
+  //Winnings earned by creator after opinion is finished
+  winnings: { type: Number, default: 0 },
 });
 
 opinionSchema.statics.createVote = async function createVote(
@@ -128,14 +130,34 @@ opinionSchema.methods.completeOpinion = async function completeOpinion() {
   if (isCreatorPaid) {
     throw new Error("Opinion already completed");
   }
+
+  let winnings = 0;
+  if (
+    (debate.totalPro > debate.totalCon && this.pro) ||
+    (debate.totalPro < debate.totalCon && !this.pro)
+  ) {
+    //opinion in majority
+    if (this.pro) {
+      winnings = (debate.totalCon * this.stake) / debate.totalPro;
+    } else {
+      winnings = (debate.totalPro * this.stake) / debate.totalCon;
+    }
+  } else if (debate.totalPro === debate.totalCon) {
+    // tie
+    winnings = this.stake;
+  } else {
+    // opinion in minority
+    winnings = 0;
+  }
   const account = await Account.findById(this.creator);
   await Account.updateBalance(
     account.address,
-    this.stake,
+    winnings,
     OPINION_TYPES[this.contentType].finishedEvent,
     this._id
   );
   this.finished = true;
+  this.winnings = winnings;
   return this.save();
 };
 opinionSchema.statics.getTotals = function getTotals(debateId) {
