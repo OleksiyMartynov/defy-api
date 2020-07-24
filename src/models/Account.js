@@ -12,13 +12,13 @@ const accountSchema = new mongoose.Schema({
   },
   //balance
   balance: { type: Number, default: 0, required: true },
-  //locked balance, in debate or opinion 
-  lockedBalance: { type: Number, default: 0, required: true }
+  //locked balance, in debate or opinion
+  lockedBalance: { type: Number, default: 0, required: true },
 });
 
 accountSchema.methods.getLocked = async function getLocked() {
-  History.aggregate({$match: {}})
-}
+  History.aggregate({ $match: {} });
+};
 accountSchema.statics.accountForAddress = function accountForAddress(address) {
   return this.findOne({ address: address });
 };
@@ -26,7 +26,8 @@ accountSchema.statics.updateBalance = async function updateBalance(
   address,
   delta,
   reason,
-  receiptSchemaId
+  receiptSchemaId,
+  winnings = 0
 ) {
   if (HISTORY_EVENT_TYPES.indexOf(reason) === -1) {
     throw new Error("Unknown balance update reason.");
@@ -54,24 +55,34 @@ accountSchema.statics.updateBalance = async function updateBalance(
     account = new Account({ address });
   }
 
-  if ((account.balance + delta) < 0) {
+  if (account.balance + delta < 0) {
     throw new Error("Account does not have enough funds");
   }
 
-  if(reason === "debate_created" ||
+  if (
+    reason === "debate_created" ||
     reason === "opinion_created" ||
     reason === "vote_created" ||
     reason === "debate_finished" ||
     reason === "opinion_finished" ||
-    reason === "vote_finished" ){
-      account.lockedBalance -= delta;
+    reason === "vote_finished"
+  ) {
+    account.lockedBalance -= delta;
   }
   account.balance += delta;
-  
+
+  if (
+    reason === "debate_finished" ||
+    reason === "opinion_finished" ||
+    reason === "vote_finished"
+  ) {
+    account.balance += winnings;
+  }
+
   await History.create({
     account: account._id,
     action: reason,
-    schemaId: receiptSchemaId?receiptSchemaId:account._id,
+    schemaId: receiptSchemaId ? receiptSchemaId : account._id,
     amount: delta,
   });
   return account.save();

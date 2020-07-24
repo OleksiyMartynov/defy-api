@@ -138,23 +138,24 @@ opinionSchema.methods.completeOpinion = async function completeOpinion() {
   ) {
     //opinion in majority
     if (this.pro) {
-      winnings = (debate.totalCon * this.stake) / debate.totalPro;
+      winnings = Math.round((this.stake / debate.totalPro) * debate.totalCon);
     } else {
-      winnings = (debate.totalPro * this.stake) / debate.totalCon;
+      winnings = Math.round((this.stake / debate.totalCon) * debate.totalPro);
     }
   } else if (debate.totalPro === debate.totalCon) {
     // tie
     winnings = this.stake;
   } else {
     // opinion in minority
-    winnings = 0;
+    winnings = -this.stake;
   }
   const account = await Account.findById(this.creator);
   await Account.updateBalance(
     account.address,
-    winnings,
+    this.stake,
     OPINION_TYPES[this.contentType].finishedEvent,
-    this._id
+    this._id,
+    winnings
   );
   this.finished = true;
   this.winnings = winnings;
