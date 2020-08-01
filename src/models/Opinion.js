@@ -187,7 +187,6 @@ opinionSchema.statics.getPeriodicStakeAgregates = function getPeriodicStakeAgreg
   debateId,
   groupTimePeriodMinutes = 60
 ) {
-  //todo test and fix
   const query = [
     {
       $match: {
