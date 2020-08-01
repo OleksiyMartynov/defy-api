@@ -119,7 +119,12 @@ debateSchema.methods.onOpinionCreated = async function onOpinionCreated(
 };
 debateSchema.methods.completeDebate = async function completeDebate() {
   if (!(await this.isPastEndTime())) {
-    throw new Error("Cannot complete debate before end time");
+    throw new Error(
+      "Cannot complete debate before end time: " +
+        new Date(this.updated.getTime() + this.duration) +
+        "\nNow: " +
+        new Date()
+    );
   }
   const isCreatorPaid = await this.isCreatorPaid();
   if (isCreatorPaid) {

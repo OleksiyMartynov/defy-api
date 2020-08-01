@@ -6,7 +6,7 @@ export const finalize = async (duration = DRAW_DURATION) => {
   const opinionsFinished = [];
   let finishTime = new Date(Date.now() - duration);
   const debates = await models.Debate.find({
-    updated: { $lte: finishTime },
+    updated: { $lt: finishTime },
     finished: { $eq: false },
   });
   for (const debate of debates) {

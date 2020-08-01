@@ -124,7 +124,12 @@ opinionSchema.methods.completeOpinion = async function completeOpinion() {
   const debate = await Debate.findById(this.debate);
   const isPastEndTime = await debate.isPastEndTime();
   if (!isPastEndTime) {
-    throw new Error("Cannot complete opinion before end time");
+    throw new Error(
+      "Cannot complete opinion before end time" +
+        new Date(debate.updated.getTime() + debate.duration) +
+        "\nNow: " +
+        new Date()
+    );
   }
   const isCreatorPaid = await this.isCreatorPaid();
   if (isCreatorPaid) {
@@ -144,7 +149,7 @@ opinionSchema.methods.completeOpinion = async function completeOpinion() {
     }
   } else if (debate.totalPro === debate.totalCon) {
     // tie
-    winnings = this.stake;
+    winnings = 0;
   } else {
     // opinion in minority
     winnings = -this.stake;

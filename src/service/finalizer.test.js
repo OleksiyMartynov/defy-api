@@ -11,19 +11,26 @@ const MOCK_WALLET_1 = ethers.Wallet.createRandom();
 const MOCK_WALLET_2 = ethers.Wallet.createRandom();
 const MOCK_WALLET_3 = ethers.Wallet.createRandom();
 const MOCK_WALLET_4 = ethers.Wallet.createRandom();
+const MOCK_WALLET_5 = ethers.Wallet.createRandom();
+const MOCK_WALLET_6 = ethers.Wallet.createRandom();
 const MOCK_WALLET_CREATOR = ethers.Wallet.createRandom();
+const MOCK_WALLET_TIE_CREATOR = ethers.Wallet.createRandom();
 const MOCK_WALLETS = [
   MOCK_WALLET_1,
   MOCK_WALLET_2,
   MOCK_WALLET_3,
   MOCK_WALLET_4,
 ];
+const MOCK_WALLETS_2 = [MOCK_WALLET_5, MOCK_WALLET_6];
 const DURATION = 5000;
 const INITIAL_TOTALS = { totalCon: 0, totalPro: 0 };
 const INITIAL_BALANCE = 99999;
 const DEBATE_COST = 100;
+const TOTAL_VOTES_TIE = 50;
+const TIE_VOTE = 10;
 let DEBATE_CON_WINS = null;
-describe("Opinion Model", () => {
+let DEBATE_TIE = null;
+describe("Debate Finalizer", () => {
   beforeAll(async () => {
     await connectDb(process.env.DATABASE_URL);
     await removeAllCollections();
@@ -39,14 +46,6 @@ describe("Opinion Model", () => {
       DEBATE_COST,
       DURATION
     );
-    // const debateTie = await models.Debate.createDebate(
-    //   MOCK_WALLET_CREATOR.address,
-    //   "Debate Title Tie",
-    //   "Debate Description Tie",
-    //   ["testTag"],
-    //   100,
-    //   DURATION
-    // );
     let incr = 0;
     for (let i = 0; i < MOCK_WALLETS.length; i++) {
       const account = MOCK_WALLETS[i];
@@ -69,14 +68,7 @@ describe("Opinion Model", () => {
           newStake,
           (i + 2) % 2 === 0
         );
-        // await models.Opinion.createOpinion(
-        //   account.address,
-        //   debateTie._id,
-        //   null,
-        //   "vote",
-        //   10,
-        //   i === 0
-        // );
+
         incr++;
       }
     }
@@ -155,8 +147,12 @@ describe("Opinion Model", () => {
     expect(finalCreatorStake).toBe(creatorStake);
     expect(finalCreatorBalance).toBe(creatorBalance);
   });
+
   it("Should finalize regular debate and update balance", async () => {
-    await sleep(DURATION);
+    const debateTime = (
+      await models.Debate.findById(DEBATE_CON_WINS._id)
+    ).updated.getTime();
+    await sleep(debateTime + DURATION - Date.now());
     // get initial balances total
     const initialCreator = await models.Account.accountForAddress(
       MOCK_WALLET_CREATOR.address
@@ -232,11 +228,111 @@ describe("Opinion Model", () => {
     expect(finalCreatorStake).toBe(0);
     expect(finalCreatorBalance).toBe(INITIAL_BALANCE);
   });
+
   it("Should finalize tie debate and update balance", async () => {
+    //creating tie event:
+    await models.Account.create({
+      address: MOCK_WALLET_TIE_CREATOR.address,
+      balance: INITIAL_BALANCE,
+    });
+    DEBATE_TIE = await models.Debate.createDebate(
+      MOCK_WALLET_TIE_CREATOR.address,
+      "Debate Title Tie",
+      "Debate Description Tie",
+      ["testTag"],
+      DEBATE_COST,
+      DURATION
+    );
+
+    for (let i = 0; i < MOCK_WALLETS_2.length; i++) {
+      const account = MOCK_WALLETS_2[i];
+      await models.Account.create({
+        address: account.address,
+        balance: INITIAL_BALANCE,
+      });
+      for (let j = 0; j < TOTAL_VOTES_TIE / 2; j++) {
+        await models.Opinion.createOpinion(
+          account.address,
+          DEBATE_TIE._id,
+          null,
+          "vote",
+          TIE_VOTE,
+          i === 0
+        );
+      }
+    }
+
+    await sleep(DURATION + 100);
     // get initial balances total
+    const initialCreator = await models.Account.accountForAddress(
+      MOCK_WALLET_TIE_CREATOR.address
+    );
+    const creatorStake = initialCreator.lockedBalance;
+    const creatorBalance = initialCreator.balance;
+    let totalProStake = 0;
+    let totalProBalance = 0;
+    let totalConStake = 0;
+    let totalConBalance = 0;
+    for (let i = 0; i < MOCK_WALLETS_2.length; i++) {
+      const account = MOCK_WALLETS_2[i];
+      const accountModel = await models.Account.accountForAddress(
+        account.address
+      );
+      const staked = accountModel.lockedBalance;
+      const balance = accountModel.balance;
+      if (i === 0) {
+        //pro
+        totalProStake += staked;
+        totalProBalance += balance;
+      } else {
+        //con
+        totalConStake += staked;
+        totalConBalance += balance;
+      }
+    }
+    expect(totalProStake).toBe((TIE_VOTE * TOTAL_VOTES_TIE) / 2);
+    expect(totalConStake).toBe((TIE_VOTE * TOTAL_VOTES_TIE) / 2);
+    expect(creatorStake).toBe(DEBATE_COST);
+    expect(creatorBalance).toBe(INITIAL_BALANCE - DEBATE_COST);
     // finalize
+    await finalize(DURATION);
     // get final balances total
-    // winning side and losing side totals should match
-    // debate attribute "finished" should be true
+    let finalTotalProStake = 0;
+    let finalTotalProBalance = 0;
+    let finalTotalConStake = 0;
+    let finalTotalConBalance = 0;
+    for (let i = 0; i < MOCK_WALLETS_2.length; i++) {
+      const account = MOCK_WALLETS_2[i];
+      const accountModel = await models.Account.accountForAddress(
+        account.address
+      );
+      const staked = accountModel.lockedBalance;
+      const balance = accountModel.balance;
+      if (i === 0) {
+        //pro
+        finalTotalProStake += staked;
+        finalTotalProBalance += balance;
+      } else {
+        //con
+        finalTotalConStake += staked;
+        finalTotalConBalance += balance;
+      }
+    }
+    // winning side and losing side totals should not change
+    expect(finalTotalProStake).toBe(0);
+    expect(finalTotalConStake).toBe(0);
+    expect(finalTotalProBalance).toBe(INITIAL_BALANCE);
+    expect(finalTotalConBalance).toBe(INITIAL_BALANCE);
+    // debate attribute "finished" should be false
+    const debate = await models.Debate.findById(DEBATE_TIE._id);
+    expect(debate.finished).toBe(true);
+    //check final balance of debate creator
+    const finalCreator = await models.Account.accountForAddress(
+      MOCK_WALLET_TIE_CREATOR.address
+    );
+    const finalCreatorStake = finalCreator.lockedBalance;
+    const finalCreatorBalance = finalCreator.balance;
+    expect(finalCreatorStake).toBe(0);
+    expect(finalCreatorBalance).toBe(INITIAL_BALANCE);
   });
 });
