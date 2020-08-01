@@ -165,7 +165,7 @@ describe("Opinion Model", () => {
       ["someTag"],
       100
     );
-    const lastUpdateTime = (await debate.getLastUpdateTime()).getTime()
+    const lastUpdateTime = (await debate).updated.getTime();
     await models.Opinion.createOpinion(
       ACCOUNT_EXISTING.address,
       debate._id,
@@ -175,7 +175,7 @@ describe("Opinion Model", () => {
       true
     );
     const updatedDebate = await models.Debate.findById(debate._id);
-    expect(lastUpdateTime).toBeLessThan((await updatedDebate.getLastUpdateTime()).getTime())
+    expect(lastUpdateTime).toBeLessThan(updatedDebate.updated.getTime());
   });
   it("should not be able to finish opinion before end time", async () => {
     const stake = 100;
@@ -184,7 +184,7 @@ describe("Opinion Model", () => {
       "Test Debate",
       "Some description",
       ["someTag"],
-      100,
+      100
     );
     const opinion = await models.Opinion.createOpinion(
       ACCOUNT_EXISTING.address,
@@ -194,10 +194,9 @@ describe("Opinion Model", () => {
       stake,
       true
     );
-    await expect(
-      opinion.completeOpinion()
-    ).rejects.toThrow("Cannot complete opinion before end time");
-
+    await expect(opinion.completeOpinion()).rejects.toThrow(
+      "Cannot complete opinion before end time"
+    );
   });
   it("should be able to finish opinion after end time", async () => {
     const stake = 100;
@@ -229,7 +228,6 @@ describe("Opinion Model", () => {
     ).balance;
 
     expect(newBalance).toBe(initialBalance + stake);
-
   });
   it("should not be able to finish opinion twice", async () => {
     const stake = 100;
@@ -261,10 +259,9 @@ describe("Opinion Model", () => {
     ).balance;
 
     expect(newBalance).toBe(initialBalance + stake);
-    await expect(
-      opinion.completeOpinion()
-    ).rejects.toThrow("Opinion already completed");
-
+    await expect(opinion.completeOpinion()).rejects.toThrow(
+      "Opinion already completed"
+    );
   });
   //vote opinions
   it("Should not create vote with invalid parameters", async () => {
@@ -278,12 +275,7 @@ describe("Opinion Model", () => {
     const UNEXISTING_DEBATE_ID = "5eb6a0f66699592af79590b1";
     const UNFUNDED_ADDRESS = "0xa236cffabbdd893a6f7cea402e7338643ced44a7";
     await expect(
-      models.Opinion.createVote(
-        UNFUNDED_ADDRESS,
-        debate._id,
-        100,
-        true
-      )
+      models.Opinion.createVote(UNFUNDED_ADDRESS, debate._id, 100, true)
     ).rejects.toThrow("Unknown account address");
     await expect(
       models.Opinion.createVote(
@@ -314,12 +306,7 @@ describe("Opinion Model", () => {
     );
     await sleep(duration + 1);
     await expect(
-      models.Opinion.createVote(
-        ACCOUNT_EXISTING.address,
-        debate._id,
-        100,
-        true
-      )
+      models.Opinion.createVote(ACCOUNT_EXISTING.address, debate._id, 100, true)
     ).rejects.toThrow("Cannot create opinion past end time");
   });
   it("Should create vote with correct data", async () => {
@@ -369,7 +356,7 @@ describe("Opinion Model", () => {
       "Test Debate",
       "Some description",
       ["someTag"],
-      100,
+      100
     );
     const vote = await models.Opinion.createVote(
       ACCOUNT_EXISTING.address,
@@ -377,10 +364,9 @@ describe("Opinion Model", () => {
       stake,
       true
     );
-    await expect(
-      vote.completeOpinion()
-    ).rejects.toThrow("Cannot complete opinion before end time");
-
+    await expect(vote.completeOpinion()).rejects.toThrow(
+      "Cannot complete opinion before end time"
+    );
   });
   it("should be able to finish vote after end time", async () => {
     const stake = 100;
@@ -410,7 +396,6 @@ describe("Opinion Model", () => {
     ).balance;
 
     expect(newBalance).toBe(initialBalance + stake);
-
   });
   it("should not be able to finish vote twice", async () => {
     const stake = 100;
@@ -440,9 +425,8 @@ describe("Opinion Model", () => {
     ).balance;
 
     expect(newBalance).toBe(initialBalance + stake);
-    await expect(
-      vote.completeOpinion()
-    ).rejects.toThrow("Opinion already completed");
-
+    await expect(vote.completeOpinion()).rejects.toThrow(
+      "Opinion already completed"
+    );
   });
 });

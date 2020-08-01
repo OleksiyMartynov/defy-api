@@ -99,5 +99,5 @@ export const isBodyValidOpinion = (body) => {
 
 export const addressToId = async (address) => {
   const account = await models.Account.accountForAddress(address);
-  return account._id ? account._id : null;
+  return account?._id;
 };

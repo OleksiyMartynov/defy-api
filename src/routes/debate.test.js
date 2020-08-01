@@ -68,9 +68,9 @@ describe("Debate Endpoints", () => {
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("debate");
     expect(res.body).toHaveProperty("history");
-    console.log(JSON.stringify(res.body))
+    console.log(JSON.stringify(res.body));
     expect(res.body.debate).toHaveProperty("created");
-    expect(res.body.debate).toHaveProperty("creator");
+    expect(res.body.debate).not.toHaveProperty("creator");
     expect(res.body.debate).toHaveProperty("title");
     expect(res.body.debate).toHaveProperty("description");
     expect(res.body.debate).toHaveProperty("tags");

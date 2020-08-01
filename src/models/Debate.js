@@ -46,11 +46,6 @@ const debateSchema = new mongoose.Schema({
   //Flag for query search performance
   finished: { type: Boolean, default: false },
 });
-// debateSchema.methods.getLastUpdateTime = async function getLastUpdateTime(){
-//   const topOpinionQuery = Opinion.find({debate : this._id}).sort({stake : -1}).limit(1);
-//   const topOpinion = await topOpinionQuery.exec();
-//   return topOpinion[0]? topOpinion[0].created: this.created;
-// };
 debateSchema.statics.createDebate = async function createDebate(
   address,
   title,
