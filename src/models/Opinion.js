@@ -166,7 +166,11 @@ opinionSchema.methods.completeOpinion = async function completeOpinion() {
   this.winnings = winnings;
   return this.save();
 };
-opinionSchema.statics.getTotals = function getTotals(debateId) {
+
+opinionSchema.statics.getTotals = async function getTotals(
+  debateId,
+  creatorAddress
+) {
   const query = [
     {
       $match: {
@@ -181,6 +185,13 @@ opinionSchema.statics.getTotals = function getTotals(debateId) {
       },
     },
   ];
+  if (creatorAddress) {
+    const account = await Account.accountForAddress(creatorAddress);
+    if (account) {
+      query[0].$match.creator = account._id;
+      query[1].$group._id = "$creator";
+    }
+  }
   return Opinion.aggregate(query);
 };
 opinionSchema.statics.getPeriodicStakeAgregates = function getPeriodicStakeAgregates(
@@ -215,7 +226,6 @@ opinionSchema.statics.getPeriodicStakeAgregates = function getPeriodicStakeAgreg
       $sort: { "_id.year": 1, "_id.day": 1, "_id.month": 1, "_id.hour": 1 },
     },
   ];
-  console.log(JSON.stringify(query));
   return Opinion.aggregate(query);
 };
 opinionSchema.set("toJSON", { getters: true, virtuals: true });

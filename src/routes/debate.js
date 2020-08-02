@@ -99,6 +99,20 @@ router.get("/:objectId", async (req, res) => {
         );
         const expandedHours = expandDebateAggregates(debate, history);
 
+        let callerTotals = null;
+        if (callerAddress) {
+          const callerTotalsArr = await req.context.models.Opinion.getTotals(
+            debate._id,
+            callerAddress
+          );
+          if (callerTotalsArr.length > 0) {
+            callerTotals = callerTotalsArr[0];
+            delete callerTotals._id;
+          } else {
+            callerTotals = { totalPro: 0, totalCon: 0 };
+          }
+        }
+
         var topOpinion = await req.context.models.Opinion.find({
           debate: debate._id,
         })
@@ -109,13 +123,13 @@ router.get("/:objectId", async (req, res) => {
           ? topOpinion[0].stake
           : MIN_VOTE_STAKE;
         const outDebate = debate.toJSON();
-        console.log(callerAddress + "===" + debate.creator.address);
         outDebate.createdByYou = callerAddress === debate.creator.address;
         delete outDebate.creator;
         delete outDebate._id;
         res.send({
           debate: outDebate,
           history: expandedHours,
+          callerTotals,
           rules: {
             minOpinionCreationStake: prevMaxStake + 1,
             minVoteCreationStake: MIN_VOTE_STAKE,

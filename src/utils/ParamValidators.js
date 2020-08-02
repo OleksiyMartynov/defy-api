@@ -19,7 +19,10 @@ export const queryToPageInfo = (query) => {
 export const queryToFilter = async (query) => {
   let filterFinished = query.finished === "true" ? true : false;
   let sort = {};
-  let find = { finished: filterFinished };
+  let find = {};
+  if (typeof query.finished !== "undefined") {
+    find.finished = filterFinished;
+  }
   if (query.sortByDate) {
     sort.created = "desc";
   } else if (query.sortBySize) {
