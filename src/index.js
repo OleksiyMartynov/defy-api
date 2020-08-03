@@ -17,3 +17,9 @@ connectDb(process.env.DATABASE_URL).then(async () => {
   //   balance: 9999999,
   // });
 });
+
+//todo : update search criteria
+//todo : add route for user history
+//todo : LND deposits
+//todo : LND withdrawals
+//todo : charge house fees
