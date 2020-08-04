@@ -18,7 +18,6 @@ connectDb(process.env.DATABASE_URL).then(async () => {
   // });
 });
 
-//todo : update search criteria
 //todo : add route for user history
 //todo : LND deposits
 //todo : LND withdrawals

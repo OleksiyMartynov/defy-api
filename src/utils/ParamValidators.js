@@ -37,6 +37,13 @@ export const queryToFilter = async (query) => {
     );
     find.creator = account._id;
   }
+  if (query.searchText) {
+    const cleanText = query.searchText.replace(
+      /[-[\]{}()*+?.,\\^$|#\s]/g,
+      "\\$&"
+    );
+    find.title = new RegExp(cleanText, "gi");
+  }
   console.log({ find, sort });
   return { find, sort };
 };
