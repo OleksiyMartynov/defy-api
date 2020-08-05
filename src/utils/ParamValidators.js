@@ -44,6 +44,12 @@ export const queryToFilter = async (query) => {
     );
     find.title = new RegExp(cleanText, "gi");
   }
+  if (query.tag) {
+    const tagModel = await models.Tag.findOne({
+      name: { $regex: new RegExp(`${query.tag}`, "i") },
+    });
+    find.tags = tagModel?._id;
+  }
   console.log({ find, sort });
   return { find, sort };
 };
