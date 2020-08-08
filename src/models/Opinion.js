@@ -109,7 +109,9 @@ opinionSchema.statics.createOpinion = async function createOpinion(
     account.address,
     -stake,
     OPINION_TYPES[contentType].createdEvent,
-    createdOpinion._id
+    createdOpinion._id,
+    0,
+    "Opinion"
   );
   return createdOpinion.save();
 };
@@ -160,7 +162,8 @@ opinionSchema.methods.completeOpinion = async function completeOpinion() {
     this.stake,
     OPINION_TYPES[this.contentType].finishedEvent,
     this._id,
-    winnings
+    winnings,
+    "Opinion"
   );
   this.finished = true;
   this.winnings = winnings;

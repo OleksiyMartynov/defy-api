@@ -80,7 +80,9 @@ debateSchema.statics.createDebate = async function createDebate(
     account.address,
     -stake,
     "debate_created",
-    createdDebate._id
+    createdDebate._id,
+    0,
+    "Debate"
   );
   return createdDebate.save();
 };
@@ -130,7 +132,9 @@ debateSchema.methods.completeDebate = async function completeDebate() {
     account.address,
     this.stake,
     "debate_finished",
-    this._id
+    this._id,
+    0,
+    "Debate"
   );
 
   this.finished = true;

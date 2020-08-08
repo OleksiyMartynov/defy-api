@@ -113,6 +113,19 @@ export const isBodyValidOpinion = (body) => {
   };
 };
 
+export const isBodyValidHistory = (body) => {
+  const { address } = body;
+
+  if (!isValidAddress(address)) {
+    return { isValid: false, data: "Invalid address" };
+  }
+
+  return {
+    isValid: true,
+    data: { address },
+  };
+};
+
 export const addressToId = async (address) => {
   const account = await models.Account.accountForAddress(address);
   return account?._id;

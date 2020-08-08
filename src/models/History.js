@@ -13,7 +13,14 @@ const historySchema = new mongoose.Schema({
   },
   schemaId: {
     type: mongoose.Schema.Types.ObjectId,
+    refPath: "fromModel",
     required: true,
+  },
+  fromModel: {
+    type: String,
+    required: true,
+    enum: ["Debate", "Opinion", "Account", "Tag"],
+    trim: true,
   },
   amount: {
     type: Number,

@@ -27,7 +27,8 @@ accountSchema.statics.updateBalance = async function updateBalance(
   delta,
   reason,
   receiptSchemaId,
-  winnings = 0
+  winnings = 0,
+  schemaName
 ) {
   if (HISTORY_EVENT_TYPES.indexOf(reason) === -1) {
     throw new Error("Unknown balance update reason.");
@@ -83,6 +84,7 @@ accountSchema.statics.updateBalance = async function updateBalance(
     account: account._id,
     action: reason,
     schemaId: receiptSchemaId ? receiptSchemaId : account._id,
+    fromModel: schemaName ? schemaName : "Account",
     amount: delta,
   });
   return account.save();
