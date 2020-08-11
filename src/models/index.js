@@ -3,6 +3,7 @@ import Opinion from "./Opinion";
 import Account from "./Account";
 import History from "./History";
 import Tag from "./Tag";
- 
-const models = {  Account, Debate, Opinion, History, Tag }; 
+import Invoice from "./Invoice";
+
+const models = { Account, Debate, Opinion, History, Tag, Invoice };
 export default models;

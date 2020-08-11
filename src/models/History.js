@@ -19,7 +19,7 @@ const historySchema = new mongoose.Schema({
   fromModel: {
     type: String,
     required: true,
-    enum: ["Debate", "Opinion", "Account", "Tag"],
+    enum: ["Debate", "Opinion", "Account", "Tag", "Invoice"],
     trim: true,
   },
   amount: {
