@@ -1,6 +1,6 @@
 import fs from "fs";
 import grpc from "grpc";
-import { resolve } from "path";
+import { INVOICE_EXPIRY } from "../models/ModelConstants";
 
 const m = fs.readFileSync(process.env.LND_FILES_PATH + "/admin.macaroon");
 
@@ -47,10 +47,10 @@ export default class LightningService {
   setInvoicePaidListener(listener) {
     this.invoicePaidListener = listener;
   }
-  async createInvoice(expiry = 3600) {
+  async createInvoice(expiry = INVOICE_EXPIRY) {
     return new Promise((resolve, reject) => {
       lightning.addInvoice({ expiry }, (error, response) => {
-        if (err) {
+        if (error) {
           reject(error);
         } else {
           resolve(response);
@@ -61,10 +61,10 @@ export default class LightningService {
   async payInvoice(invoice) {
     return new Promise((resolve, reject) => {
       lightning.sendPaymentSync({ payment_request: invoice }, function (
-        err,
+        error,
         response
       ) {
-        if (err) {
+        if (error) {
           reject(error);
         } else {
           resolve(response);
@@ -78,8 +78,8 @@ export default class LightningService {
         {
           pay_req: invoice,
         },
-        function (err, response) {
-          if (err) {
+        function (error, response) {
+          if (error) {
             reject(error);
           } else {
             resolve(response);

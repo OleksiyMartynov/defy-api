@@ -7,25 +7,32 @@ const paymentService = new PaymentService();
 
 router.post("/deposit", verifyPubKeyRoute, async (req, res) => {
   if (req.validSignature) {
-    const account = await req.context.models.Account.findOne({
-      pubKey: decodeURI(req.body.pubKey),
-    });
-    let newBalance = 0;
-    //console.log(account);
-
-    // console.log(req.query.initial === 1000);
-    let model;
-    if (!account) {
-      newBalance = req.query.initial === "1000" ? 1000 : 0;
-      model = await req.context.models.Account.create({
-        pubKey: decodeURI(req.body.pubKey),
-        balance: newBalance,
-      });
-    } else {
-      model = account;
+    try {
+      const invoice = await paymentService.getOrCreateDepositInvoice(
+        req.body.address
+      );
+      return res.send({ invoice });
+    } catch (ex) {
+      console.trace(ex);
+      res.status(500).send({ error: "Failed to generate invoice" });
     }
+  } else {
+    return res.send({ error: "Invalid Signature" });
+  }
+});
 
-    return res.send(model);
+router.post("/withdraw", verifyPubKeyRoute, async (req, res) => {
+  if (req.validSignature) {
+    try {
+      const withdrawal = await paymentService.withdrawFunds(
+        req.body.invoice,
+        req.body.address
+      );
+      return res.send({ withdrawal });
+    } catch (ex) {
+      console.trace(ex);
+      res.status(500).send({ error: "Failed to pay invoice" });
+    }
   } else {
     return res.send({ error: "Invalid Signature" });
   }

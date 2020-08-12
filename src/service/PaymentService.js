@@ -1,49 +1,67 @@
 import LightningService from "./LightningService";
-
+import Invoice from "../models/Invoice";
+import Account from "../models/Account";
 export default class PaymentService {
   constructor() {
-    this.lightning = new LightningService(this.onInvoicePaid);
+    this.lightning = new LightningService(this.onDepositInvoicePaid);
   }
-  onInvoicePaid(invoice) {
-    //lookup pending invoice
-    const pendingInvoice = null;
-    //mark invoice as paid
-    pendingInvoice.markPaid(); //increments balance of account with invoice.value
+  async onDepositInvoicePaid(invoiceData) {
+    console.log(invoiceData);
+    const pendingInvoice = await Invoice.getInvoiceForData(
+      invoiceData.payment_request
+    );
+    if (pendingInvoice) {
+      pendingInvoice.markDepositPaid(parseInt(invoiceData.amt_paid_sat));
+    } else {
+      console.warn("Got unknown invoice payment!");
+    }
   }
-  async withdrawFunds(invoice, account) {
+  async withdrawFunds(invoice, address) {
+    //TODO: handle invoice that has previously failed!
     //check if user already has pending withdrawal
-    const hasPending = account.hasPendingWithdrawal();
+    const account = await Account.accountForAddress(address);
+    const hasPending = await Invoice.getValidWithdrawInvoice(account);
     if (hasPending) {
       throw new Error("Finish pending withdrawal first");
     } else {
       //check balance
       const invoiceData = await this.lightning.decodePaymentRequest(invoice);
+      console.log(invoiceData);
       //TODO: handle unset amount
       const amt = parseInt(invoiceData.num_satoshis);
       if (amt > account.balance) {
         throw new Error("not enough balance");
       }
       try {
-        let invoiceModel; //save invoice to db as pending withdrawal
+        let invoiceModel = await Invoice.createWithdrawalInvoice(
+          address,
+          invoice,
+          amt
+        );
         const paymentResponse = await this.lightning.payInvoice(invoice);
-        //mark invoice as paid
-        invoiceModel.markPaid();
+        console.log(paymentResponse);
+        if (!paymentResponse.payment_preimage) {
+          return invoiceModel.markWithdrawalFailure();
+        }
+        return invoiceModel.markWithdrawalPaid();
       } catch (ex) {
-        //mark invoice as faiure
-        invoiceModel.markFailure(); //reverts balance
+        console.log();
+        return invoiceModel.markWithdrawalFailure();
       }
     }
   }
 
-  async getOrCreateDepositInvoice(account) {
-    // check if non expired invoice exists in db
-    let invoice;
-    if (invoice) {
-      return invoice.data;
-    } else {
-      const lndInvoice = this.lightning.createInvoice();
-      //save lndInvoice to db as pending in the db and add expiry time
-      return invoice;
+  async getOrCreateDepositInvoice(address) {
+    const account = await Account.accountForAddress(address);
+    let invoiceModel = await Invoice.getValidWithdrawInvoice(account);
+    if (!invoiceModel) {
+      const lndInvoice = await this.lightning.createInvoice();
+      console.log(lndInvoice.payment_request);
+      invoiceModel = await Invoice.createDepositInvoice(
+        address,
+        lndInvoice.payment_request
+      );
     }
+    return invoiceModel;
   }
 }

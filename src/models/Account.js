@@ -33,7 +33,9 @@ accountSchema.statics.updateBalance = async function updateBalance(
   if (HISTORY_EVENT_TYPES.indexOf(reason) === -1) {
     throw new Error("Unknown balance update reason.");
   } else if (
-    (reason === "deposit" ||
+    (reason === "withdrawal" ||
+      reason === "withdrawal_failed" ||
+      reason === "deposit" ||
       reason === "debate_finished" ||
       reason === "opinion_finished" ||
       reason === "vote_finished") &&
@@ -41,7 +43,7 @@ accountSchema.statics.updateBalance = async function updateBalance(
   ) {
     throw new Error("Number must be > 0 for " + reason);
   } else if (
-    (reason === "withdrawal" ||
+    (reason === "withdrawal_created" ||
       reason === "debate_created" ||
       reason === "opinion_created" ||
       reason === "vote_created") &&
@@ -61,6 +63,9 @@ accountSchema.statics.updateBalance = async function updateBalance(
   }
 
   if (
+    reason === "withdrawal_failed" ||
+    reason === "withdrawal_created" ||
+    reason === "withdrawal" ||
     reason === "debate_created" ||
     reason === "opinion_created" ||
     reason === "vote_created" ||
@@ -71,6 +76,10 @@ accountSchema.statics.updateBalance = async function updateBalance(
     account.lockedBalance -= delta;
   }
   account.balance += delta;
+
+  if (reason === "withdrawal") {
+    account.balance -= delta;
+  }
 
   if (
     reason === "debate_finished" ||

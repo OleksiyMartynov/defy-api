@@ -7,11 +7,14 @@ export const HISTORY_EVENT_TYPES = [
   "opinion_finished",
   "vote_created",
   "vote_finished",
+  "withdrawal_created",
+  "withdrawal_failed",
 ];
 
 export const MIN_OPINION_START_STAKE = 100;
 export const MIN_VOTE_STAKE = 1;
 export const DRAW_DURATION = 24 * 60 * 60 * 1000;
+export const INVOICE_EXPIRY = 60 * 60 * 1000;
 export const DRAW_DESCRIPTION_PREVIEW_LENGTH = 200;
 export const OPINION_TYPES = {
   link: {

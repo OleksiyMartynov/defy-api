@@ -18,7 +18,5 @@ connectDb(process.env.DATABASE_URL).then(async () => {
   // });
 });
 
-//todo : add route for user history
-//todo : LND deposits
-//todo : LND withdrawals
 //todo : charge house fees
+//todo : cleanup mongo models
