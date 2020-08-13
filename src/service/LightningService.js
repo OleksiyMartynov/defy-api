@@ -38,7 +38,6 @@ export default class LightningService {
     }
     this.invoicePaidListener = invoicePaidListener;
     lightning.subscribeInvoices({}).on("data", function (invoice) {
-      console.log(invoice);
       if (invoice.state === "SETTLED") {
         invoicePaidListener(invoice);
       }
@@ -49,13 +48,16 @@ export default class LightningService {
   }
   async createInvoice(expiry = INVOICE_EXPIRY) {
     return new Promise((resolve, reject) => {
-      lightning.addInvoice({ expiry }, (error, response) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(response);
+      lightning.addInvoice(
+        { expiry, memo: "Deposit to defy.fyi" },
+        (error, response) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(response);
+          }
         }
-      });
+      );
     });
   }
   async payInvoice(invoice) {

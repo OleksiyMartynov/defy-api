@@ -2,7 +2,7 @@ import "./../jestConfig";
 import { connectDb, removeAllCollections } from "../utils/DatabaseUtils";
 import models from "../models";
 import { HISTORY_EVENT_TYPES } from "../models/ModelConstants";
-import { sleep } from "../utils/Common";
+import { sleep, createRandomString } from "../utils/Common";
 
 //TEST DATA
 const ACCOUNT_EXISTING = {
@@ -32,7 +32,7 @@ describe("Invoice Model", () => {
     const account = await models.Account.accountForAddress(
       ACCOUNT_EXISTING.address
     );
-    const data = createFakeInvoice();
+    const data = createRandomString();
     const invoice = await models.Invoice.createDepositInvoice(
       ACCOUNT_EXISTING.address,
       data,
@@ -63,7 +63,7 @@ describe("Invoice Model", () => {
     const account = await models.Account.accountForAddress(
       ACCOUNT_EXISTING.address
     );
-    const data = createFakeInvoice();
+    const data = createRandomString();
     const amount = 100;
     const invoice = await models.Invoice.createWithdrawalInvoice(
       ACCOUNT_EXISTING.address,
@@ -92,7 +92,7 @@ describe("Invoice Model", () => {
   });
 
   it("Should find existing invoice given invoice data", async () => {
-    const data = createFakeInvoice();
+    const data = createRandomString();
     const invoice = await models.Invoice.createDepositInvoice(
       ACCOUNT_EXISTING.address,
       data,
@@ -111,13 +111,13 @@ describe("Invoice Model", () => {
   });
 
   it("Should not find invoice given invalid invoice data", async () => {
-    const data = createFakeInvoice();
+    const data = createRandomString();
     await models.Invoice.createDepositInvoice(
       ACCOUNT_EXISTING.address,
       data,
       QUICK_EXPIRY
     );
-    const data2 = createFakeInvoice();
+    const data2 = createRandomString();
     const foundInvoice = await models.Invoice.getInvoiceForData(data2);
     expect(foundInvoice).toBeNull();
   });
@@ -127,7 +127,7 @@ describe("Invoice Model", () => {
     const account = await models.Account.accountForAddress(
       ACCOUNT_EXISTING_2.address
     );
-    const data = createFakeInvoice();
+    const data = createRandomString();
     await models.Invoice.createDepositInvoice(
       ACCOUNT_EXISTING_2.address,
       data,
@@ -163,7 +163,7 @@ describe("Invoice Model", () => {
     const account = await models.Account.accountForAddress(
       ACCOUNT_EXISTING_2.address
     );
-    const data = createFakeInvoice();
+    const data = createRandomString();
     const amount = 412;
     await models.Invoice.createWithdrawalInvoice(
       ACCOUNT_EXISTING_2.address,
@@ -201,7 +201,7 @@ describe("Invoice Model", () => {
     const account = await models.Account.accountForAddress(
       ACCOUNT_EXISTING_2.address
     );
-    const data = createFakeInvoice();
+    const data = createRandomString();
     await models.Invoice.createDepositInvoice(
       ACCOUNT_EXISTING_2.address,
       data,
@@ -220,7 +220,7 @@ describe("Invoice Model", () => {
     const account = await models.Account.accountForAddress(
       ACCOUNT_EXISTING.address
     );
-    const data = createFakeInvoice();
+    const data = createRandomString();
     const invoice = await models.Invoice.createDepositInvoice(
       ACCOUNT_EXISTING.address,
       data,
@@ -252,7 +252,7 @@ describe("Invoice Model", () => {
     const account = await models.Account.accountForAddress(
       ACCOUNT_EXISTING.address
     );
-    const data = createFakeInvoice();
+    const data = createRandomString();
     const invoice = await models.Invoice.createDepositInvoice(
       ACCOUNT_EXISTING.address,
       data,
@@ -283,7 +283,7 @@ describe("Invoice Model", () => {
     const account = await models.Account.accountForAddress(
       ACCOUNT_EXISTING.address
     );
-    const data = createFakeInvoice();
+    const data = createRandomString();
 
     const amount = 210;
     const invoice = await models.Invoice.createWithdrawalInvoice(
@@ -323,7 +323,7 @@ describe("Invoice Model", () => {
     const account = await models.Account.accountForAddress(
       ACCOUNT_EXISTING.address
     );
-    const data = createFakeInvoice();
+    const data = createRandomString();
 
     const amount = 210;
     await models.Invoice.createWithdrawalInvoice(
@@ -364,7 +364,7 @@ describe("Invoice Model", () => {
     const account = await models.Account.accountForAddress(
       ACCOUNT_EXISTING.address
     );
-    const data = createFakeInvoice();
+    const data = createRandomString();
 
     const amount = 210;
     const invoice = await models.Invoice.createWithdrawalInvoice(
@@ -406,7 +406,7 @@ describe("Invoice Model", () => {
     const account = await models.Account.accountForAddress(
       ACCOUNT_EXISTING.address
     );
-    const data = createFakeInvoice();
+    const data = createRandomString();
 
     const amount = 210;
     const invoice = await models.Invoice.createWithdrawalInvoice(
@@ -429,15 +429,4 @@ describe("Invoice Model", () => {
       "Attempted to pay paid/failed invoice"
     );
   });
-
-  function createFakeInvoice(length = 360) {
-    var result = "";
-    var characters =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    var charactersLength = characters.length;
-    for (var i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return `lnbc${result}`;
-  }
 });

@@ -1,9 +1,9 @@
 import { Router } from "express";
 import PaymentService from "../service/PaymentService";
 import { verifyPubKeyRoute } from "../middleware/SignatureVerifier";
-
+import LightningService from "../service/LightningService";
 const router = Router();
-const paymentService = new PaymentService();
+const paymentService = new PaymentService(LightningService);
 
 router.post("/deposit", verifyPubKeyRoute, async (req, res) => {
   if (req.validSignature) {

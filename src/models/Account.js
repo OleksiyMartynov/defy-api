@@ -11,9 +11,9 @@ const accountSchema = new mongoose.Schema({
     minlength: 42,
   },
   //balance
-  balance: { type: Number, default: 0, required: true },
+  balance: { type: Number, default: 0 },
   //locked balance, in debate or opinion
-  lockedBalance: { type: Number, default: 0, required: true },
+  lockedBalance: { type: Number, default: 0 },
 });
 
 accountSchema.methods.getLocked = async function getLocked() {

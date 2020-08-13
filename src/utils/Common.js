@@ -38,3 +38,14 @@ export const trimStringToLength = (string, length) => {
     ? string.substring(0, length - 3) + "..."
     : string;
 };
+
+export const createRandomString = (length = 360, prefix = "lnbc") => {
+  var result = "";
+  var characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  var charactersLength = characters.length;
+  for (var i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return `${prefix}${result}`;
+};

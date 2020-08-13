@@ -5,8 +5,7 @@ import routes from "../routes";
 import cors from "cors";
 import bodyParser from "body-parser";
 import express from "express";
-import logging from '../middleware/Logger';
-// import { looper } from "./looper";
+import logging from "../middleware/Logger";
 
 const app = express();
 app.use(cors());
@@ -16,11 +15,10 @@ app.use(logging);
 
 app.use((req, res, next) => {
   req.context = {
-    models
+    models,
   };
   next();
 });
-
 
 app.use("/payment", routes.payment);
 app.use("/accounts", routes.account);
@@ -32,6 +30,5 @@ app.use("/meta", routes.meta);
 app.get("/", (req, res) => {
   res.json({ status: true });
 });
-
 
 module.exports = app;

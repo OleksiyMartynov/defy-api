@@ -12,3 +12,12 @@ export default (request, response, next) => {
   console.log(log);
   next();
 };
+
+export const logInvoice = (invoice, status) => {
+  let log = `=============${new Date()}=============\n`;
+  log += `=============${status}=============\n`;
+  log += `${JSON.stringify(invoice)}\n`;
+  log +=
+    "================================================================================";
+  console.log(log);
+};

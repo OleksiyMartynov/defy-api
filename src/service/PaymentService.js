@@ -1,65 +1,88 @@
-import LightningService from "./LightningService";
 import Invoice from "../models/Invoice";
 import Account from "../models/Account";
+import { logInvoice } from "../middleware/Logger";
+import { INVOICE_EXPIRY } from "../models/ModelConstants";
 export default class PaymentService {
-  constructor() {
-    this.lightning = new LightningService(this.onDepositInvoicePaid);
+  constructor(lndClass) {
+    this.lightning = new lndClass(this.onDepositInvoicePaid);
   }
   async onDepositInvoicePaid(invoiceData) {
-    console.log(invoiceData);
+    logInvoice(invoiceData, "PAYMENT_RECEIVED");
     const pendingInvoice = await Invoice.getInvoiceForData(
       invoiceData.payment_request
     );
     if (pendingInvoice) {
-      pendingInvoice.markDepositPaid(parseInt(invoiceData.amt_paid_sat));
+      return pendingInvoice.markDepositPaid(parseInt(invoiceData.amt_paid_sat));
     } else {
       console.warn("Got unknown invoice payment!");
     }
   }
   async withdrawFunds(invoice, address) {
-    //TODO: handle invoice that has previously failed!
-    //check if user already has pending withdrawal
     const account = await Account.accountForAddress(address);
+    if (!account) {
+      throw new Error("Cannot withdraw without depositing first");
+    }
     const hasPending = await Invoice.getValidWithdrawInvoice(account);
     if (hasPending) {
       throw new Error("Finish pending withdrawal first");
     } else {
       //check balance
       const invoiceData = await this.lightning.decodePaymentRequest(invoice);
-      console.log(invoiceData);
-      //TODO: handle unset amount
+      logInvoice(invoiceData, "PAYMENT_REQUESTED");
+
       const amt = parseInt(invoiceData.num_satoshis);
       if (amt > account.balance) {
-        throw new Error("not enough balance");
+        throw new Error("Not enough balance");
+      } else if (amt === 0) {
+        throw new Error("Cannot withdraw without an amount set");
       }
-      try {
-        let invoiceModel = await Invoice.createWithdrawalInvoice(
+
+      let invoiceModel = await Invoice.getInvoiceForData(invoice);
+      if (invoiceModel && invoiceModel.type === "deposit") {
+        throw new Error("Cannot withdraw to deposit invoice");
+      }
+      if (!invoiceModel) {
+        invoiceModel = await Invoice.createWithdrawalInvoice(
           address,
           invoice,
           amt
         );
+      }
+      try {
         const paymentResponse = await this.lightning.payInvoice(invoice);
-        console.log(paymentResponse);
-        if (!paymentResponse.payment_preimage) {
+        logInvoice(paymentResponse, "PAYMENT_FINALIZED");
+        if (
+          !paymentResponse.payment_preimage ||
+          paymentResponse.payment_error
+        ) {
           return invoiceModel.markWithdrawalFailure();
         }
         return invoiceModel.markWithdrawalPaid();
       } catch (ex) {
-        console.log();
+        console.trace(ex);
         return invoiceModel.markWithdrawalFailure();
       }
     }
   }
 
-  async getOrCreateDepositInvoice(address) {
+  async getOrCreateDepositInvoice(address, expiryDuration = INVOICE_EXPIRY) {
     const account = await Account.accountForAddress(address);
-    let invoiceModel = await Invoice.getValidWithdrawInvoice(account);
+    let invoiceModel;
+    if (account) {
+      //not first deposit
+      invoiceModel = await Invoice.getValidDepositInvoice(account);
+    } else {
+      //first time deposit
+      await Account.create({ address });
+    }
+
     if (!invoiceModel) {
       const lndInvoice = await this.lightning.createInvoice();
-      console.log(lndInvoice.payment_request);
+      logInvoice(lndInvoice, "PAYMENT_INVOICE_CREATED");
       invoiceModel = await Invoice.createDepositInvoice(
         address,
-        lndInvoice.payment_request
+        lndInvoice.payment_request,
+        expiryDuration
       );
     }
     return invoiceModel;
