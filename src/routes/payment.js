@@ -5,6 +5,23 @@ import LightningService from "../service/LightningService";
 const router = Router();
 const paymentService = new PaymentService(LightningService);
 
+router.post("/getInvoice", verifyPubKeyRoute, async (req, res) => {
+  if (req.validSignature) {
+    try {
+      //to do update querrie to limit invoices to req.body.address
+      const invoice = await req.context.models.Invoice.getInvoiceForData(
+        req.body.invoice
+      );
+      return res.send({ invoice });
+    } catch (ex) {
+      console.trace(ex);
+      res.status(500).send({ error: "Failed to find invoice" });
+    }
+  } else {
+    return res.send({ error: "Invalid Signature" });
+  }
+});
+
 router.post("/deposit", verifyPubKeyRoute, async (req, res) => {
   if (req.validSignature) {
     try {
@@ -24,14 +41,16 @@ router.post("/deposit", verifyPubKeyRoute, async (req, res) => {
 router.post("/withdraw", verifyPubKeyRoute, async (req, res) => {
   if (req.validSignature) {
     try {
-      const withdrawal = await paymentService.withdrawFunds(
+      const invoice = await paymentService.withdrawFunds(
         req.body.invoice,
         req.body.address
       );
-      return res.send({ withdrawal });
+      return res.send({ invoice });
     } catch (ex) {
       console.trace(ex);
-      res.status(500).send({ error: "Failed to pay invoice" });
+      res
+        .status(500)
+        .send({ error: ex.message ? ex.message : "Failed to pay invoice" });
     }
   } else {
     return res.send({ error: "Invalid Signature" });
