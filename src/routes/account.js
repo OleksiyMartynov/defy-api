@@ -24,8 +24,10 @@ router.get("/", async (req, res, next) => {
       lockedBalance: accountModel.lockedBalance,
     });
   } else {
-    res.status(400);
-    return res.send({ error: "Account address has no balance" });
+    res.send({
+      balance: 0,
+      lockedBalance: 0,
+    });
   }
 });
 
