@@ -1,7 +1,7 @@
 import "./../jestConfig";
 import { connectDb, removeAllCollections } from "../utils/DatabaseUtils";
 import models from "../models";
-import {HISTORY_EVENT_TYPES} from "../models/ModelConstants";
+import { HISTORY_EVENT_TYPES } from "../models/ModelConstants";
 
 //TEST DATA
 const MOCK_ADDRESS = "0xa115bffaccdd893a6f7cea402e7338643ced44a7";
@@ -42,7 +42,7 @@ describe("Account Model", () => {
   });
   it("Should only update balance", async () => {
     const balanceDelta = 3;
-    const reason = "deposit"
+    const reason = "deposit";
     const timestamp = Date.now();
     const existing = await models.Account.accountForAddress(
       ACCOUNT_EXISTING.address
@@ -65,8 +65,7 @@ describe("Account Model", () => {
   });
   it("Should only update and decrease balance", async () => {
     const balanceDelta = -2;
-    const reason = "withdrawal";
-    const timestamp = Date.now();
+    const reason = "withdrawal_created";
     const existing = await models.Account.accountForAddress(
       ACCOUNT_EXISTING.address
     );
@@ -86,25 +85,31 @@ describe("Account Model", () => {
     );
     expect(updatedAccount).toHaveProperty("address", ACCOUNT_EXISTING.address);
   });
-  it("Should throw when delta and reason of balance update dont match", async ()=>{
+  it("Should throw when delta and reason of balance update dont match", async () => {
     for await (let reason of HISTORY_EVENT_TYPES) {
-        if(reason==="deposit"||reason==="debate_finished"||reason==="opinion_finished"||reason==="vote_finished"){
-            await expect(
-                models.Account.updateBalance(MOCK_ADDRESS, -1, reason)
-              ).rejects.toThrow("Number must be > 0 for " + reason);
-        }else if(reason==="withdrawal"||reason==="debate_created"||reason==="opinion_created"||reason==="vote_created"){
-            await expect(
-                models.Account.updateBalance(MOCK_ADDRESS, 1, reason)
-              ).rejects.toThrow("Number must be < 0 for " + reason);
-        }else{
-            expect(true).not.toBe(true);
-        }
-        
+      if (
+        reason === "deposit" ||
+        reason === "debate_finished" ||
+        reason === "opinion_finished" ||
+        reason === "vote_finished"
+      ) {
+        await expect(
+          models.Account.updateBalance(MOCK_ADDRESS, -1, reason)
+        ).rejects.toThrow("Number must be > 0 for " + reason);
+      } else if (
+        reason === "debate_created" ||
+        reason === "opinion_created" ||
+        reason === "vote_created"
+      ) {
+        await expect(
+          models.Account.updateBalance(MOCK_ADDRESS, 1, reason)
+        ).rejects.toThrow("Number must be < 0 for " + reason);
+      }
     }
-  })
+  });
   it("Should not update account balance without enough funds", async () => {
     await expect(
-      models.Account.updateBalance(MOCK_ADDRESS, -99999, "withdrawal")
+      models.Account.updateBalance(MOCK_ADDRESS, -99999, "withdrawal_created")
     ).rejects.toThrow("Account does not have enough funds");
   });
   afterAll(async () => {

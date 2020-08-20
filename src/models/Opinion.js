@@ -165,6 +165,10 @@ opinionSchema.methods.completeOpinion = async function completeOpinion() {
     winnings,
     "Opinion"
   );
+
+  //if winner we charge fee
+  //set FEE_EARNER balance to winnings*fee_percent
+
   this.finished = true;
   this.winnings = winnings;
   return this.save();

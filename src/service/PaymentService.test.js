@@ -129,8 +129,6 @@ const MOCK_LND_SERVICE = class LightningService {
   async payInvoice(invoice) {
     return new Promise(async (resolve, reject) => {
       await sleep(1000);
-      console.log("this.shouldRejectWithdrawInvoice");
-      console.log(this.shouldRejectWithdrawInvoice);
       if (this.shouldRejectWithdrawInvoice) {
         reject(new Error(""));
       } else {

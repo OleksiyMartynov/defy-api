@@ -26,13 +26,6 @@ describe("Account Endpoints", () => {
     expect(res.statusCode).toEqual(400);
     expect(res.body).toHaveProperty("error");
   });
-  it("should not get balance", async () => {
-    const res = await request(app)
-      .get(`/accounts?account=${ACCOUNT_ADDRESS_UNKNOWN}`)
-      .send();
-    expect(res.statusCode).toEqual(400);
-    expect(res.body).toHaveProperty("error");
-  });
   it("should get balance", async () => {
     const res = await request(app)
       .get(`/accounts?account=${ACCOUNT_EXISTING.address}`)
@@ -40,20 +33,6 @@ describe("Account Endpoints", () => {
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("balance");
   });
-  //   it("should deposit new balance new account", async () => {
-  //     const res = await request(app).post("/accounts/deposit").send({
-  //       account: 0x0,
-  //     });
-  //     expect(res.statusCode).toEqual(200);
-  //     expect(res.body).toHaveProperty("post");
-  //   });
-  //   it("should deposit new balance existing account account", async () => {
-  //     const res = await request(app).post("/accounts/deposit").send({
-  //       pubKey: 0x0,
-  //     });
-  //     expect(res.statusCode).toEqual(200);
-  //     expect(res.body).toHaveProperty("post");
-  //   });
   afterAll(async () => {
     await removeAllCollections();
   });
