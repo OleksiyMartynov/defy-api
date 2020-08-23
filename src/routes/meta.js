@@ -3,7 +3,7 @@ import urlMetadata from "url-metadata";
 const router = Router();
 
 router.get("/", async (req, res) => {
-  urlMetadata(req.query.url, { timeout: 2000 }).then(
+  urlMetadata(req.query.url, { timeout: 4000 }).then(
     function (metadata) {
       res.send({ metadata });
     },
