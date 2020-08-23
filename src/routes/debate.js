@@ -10,6 +10,7 @@ import { expandDebateAggregates } from "../utils/DatabaseUtils";
 import {
   MIN_VOTE_STAKE,
   DRAW_DESCRIPTION_PREVIEW_LENGTH,
+  WINNING_OPINION_FEE,
 } from "../models/ModelConstants";
 import { trimStringToLength } from "../utils/Common";
 const router = Router();
@@ -133,6 +134,7 @@ router.get("/:objectId", async (req, res) => {
           rules: {
             minOpinionCreationStake: prevMaxStake + 1,
             minVoteCreationStake: MIN_VOTE_STAKE,
+            winnerFee: WINNING_OPINION_FEE,
           },
         });
       }

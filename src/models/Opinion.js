@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { OPINION_TYPES } from "./ModelConstants";
+import { OPINION_TYPES, WINNING_OPINION_FEE } from "./ModelConstants";
 import Debate from "./Debate";
 import Account from "./Account";
 import History from "./History";
@@ -156,18 +156,30 @@ opinionSchema.methods.completeOpinion = async function completeOpinion() {
     // opinion in minority
     winnings = -this.stake;
   }
+
+  let fee = 0;
+  if (winnings > 0) {
+    fee = Math.round(winnings * WINNING_OPINION_FEE);
+    await Account.updateBalance(
+      process.env.FEE_EARNER,
+      fee,
+      "deposit",
+      this._id,
+      0,
+      "Opinion"
+    );
+  }
+
   const account = await Account.findById(this.creator);
   await Account.updateBalance(
     account.address,
     this.stake,
     OPINION_TYPES[this.contentType].finishedEvent,
     this._id,
-    winnings,
-    "Opinion"
+    winnings - fee,
+    "Opinion",
+    fee
   );
-
-  //if winner we charge fee
-  //set FEE_EARNER balance to winnings*fee_percent
 
   this.finished = true;
   this.winnings = winnings;

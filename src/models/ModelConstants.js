@@ -16,6 +16,8 @@ export const MIN_VOTE_STAKE = 1;
 export const DRAW_DURATION = 24 * 60 * 60 * 1000;
 export const INVOICE_EXPIRY = 60 * 60 * 1000;
 export const DRAW_DESCRIPTION_PREVIEW_LENGTH = 200;
+export const WINNING_OPINION_FEE = 0.01;
+
 export const OPINION_TYPES = {
   link: {
     name: "link",

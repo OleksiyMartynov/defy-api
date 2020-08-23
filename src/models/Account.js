@@ -16,9 +16,6 @@ const accountSchema = new mongoose.Schema({
   lockedBalance: { type: Number, default: 0 },
 });
 
-accountSchema.methods.getLocked = async function getLocked() {
-  History.aggregate({ $match: {} });
-};
 accountSchema.statics.accountForAddress = function accountForAddress(address) {
   return this.findOne({ address: address });
 };
@@ -28,7 +25,8 @@ accountSchema.statics.updateBalance = async function updateBalance(
   reason,
   receiptSchemaId,
   winnings = 0,
-  schemaName
+  schemaName,
+  fee = 0
 ) {
   if (HISTORY_EVENT_TYPES.indexOf(reason) === -1) {
     throw new Error("Unknown balance update reason.");
@@ -95,6 +93,7 @@ accountSchema.statics.updateBalance = async function updateBalance(
     schemaId: receiptSchemaId ? receiptSchemaId : account._id,
     fromModel: schemaName ? schemaName : "Account",
     amount: delta,
+    fee: fee,
   });
   return account.save();
 };

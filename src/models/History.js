@@ -30,6 +30,10 @@ const historySchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  fee: {
+    type: Number,
+    required: true,
+  },
 });
 
 historySchema.set("toJSON", { getters: true, virtuals: true });

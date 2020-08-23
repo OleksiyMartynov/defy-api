@@ -1,10 +1,14 @@
 import "./../jestConfig";
 import { connectDb, removeAllCollections } from "../utils/DatabaseUtils";
 import models from "../models";
-import { HISTORY_EVENT_TYPES } from "../models/ModelConstants";
+import {
+  HISTORY_EVENT_TYPES,
+  WINNING_OPINION_FEE,
+} from "../models/ModelConstants";
 import { sleep } from "../utils/Common";
 import { ethers } from "ethers";
 import { finalize } from "./finalizer";
+import Account from "../models/Account";
 
 //TEST DATA
 const MOCK_WALLET_1 = ethers.Wallet.createRandom();
@@ -208,11 +212,15 @@ describe("Debate Finalizer", () => {
         finalTotalConBalance += balance;
       }
     }
+    const PLATFORM = await Account.accountForAddress(process.env.FEE_EARNER);
     // balances of winner and loser should change by the initial stake
     expect(finalTotalProBalance - totalProBalance).toBe(0);
-    expect(finalTotalConBalance).toBe(
-      totalConBalance + INITIAL_TOTALS.totalCon + INITIAL_TOTALS.totalPro
-    );
+    const winningsCalc =
+      totalConBalance +
+      INITIAL_TOTALS.totalCon +
+      INITIAL_TOTALS.totalPro -
+      PLATFORM.balance;
+    expect(finalTotalConBalance).toBe(winningsCalc);
     // stake amounts should be zero
     expect(finalTotalConStake).toBe(0);
     expect(finalTotalProStake).toBe(0);
