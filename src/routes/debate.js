@@ -146,6 +146,8 @@ router.post("/new", verifyPubKeyRoute, async (req, res) => {
   } else {
     const validationData = isBodyValidDebate(req.body);
     if (validationData.isValid) {
+      const session = await req.context.models.database.startSession();
+      session.startTransaction();
       try {
         const debate = await req.context.models.Debate.createDebate(
           validationData.data.address,
@@ -154,6 +156,7 @@ router.post("/new", verifyPubKeyRoute, async (req, res) => {
           validationData.data.tags,
           parseInt(validationData.data.stake, 10)
         );
+        await session.commitTransaction();
         req.context.models.Debate.findById(debate._id)
           .select(
             "creator title description tags stake created duration finished"
@@ -172,6 +175,7 @@ router.post("/new", verifyPubKeyRoute, async (req, res) => {
       } catch (ex) {
         res.status(400).send({ error: ex.message });
       }
+      session.endSession();
     } else {
       res.status(400).send({ error: validationData.data });
     }

@@ -24,15 +24,19 @@ router.post("/getInvoice", verifyPubKeyRoute, async (req, res) => {
 
 router.post("/deposit", verifyPubKeyRoute, async (req, res) => {
   if (req.validSignature) {
+    const session = await req.context.models.database.startSession();
+    session.startTransaction();
     try {
       const invoice = await paymentService.getOrCreateDepositInvoice(
         req.body.address
       );
-      return res.send({ invoice });
+      await session.commitTransaction();
+      res.send({ invoice });
     } catch (ex) {
       console.trace(ex);
       res.status(500).send({ error: "Failed to generate invoice" });
     }
+    session.endSession();
   } else {
     return res.send({ error: "Invalid Signature" });
   }
@@ -40,18 +44,22 @@ router.post("/deposit", verifyPubKeyRoute, async (req, res) => {
 
 router.post("/withdraw", verifyPubKeyRoute, async (req, res) => {
   if (req.validSignature) {
+    const session = await req.context.models.database.startSession();
+    session.startTransaction();
     try {
       const invoice = await paymentService.withdrawFunds(
         req.body.invoice,
         req.body.address
       );
-      return res.send({ invoice });
+      await session.commitTransaction();
+      res.send({ invoice });
     } catch (ex) {
       console.trace(ex);
       res
         .status(500)
         .send({ error: ex.message ? ex.message : "Failed to pay invoice" });
     }
+    session.endSession();
   } else {
     return res.send({ error: "Invalid Signature" });
   }

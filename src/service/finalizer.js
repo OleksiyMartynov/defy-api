@@ -9,6 +9,8 @@ export const finalize = async (duration = DRAW_DURATION) => {
     updated: { $lt: finishTime },
     finished: { $eq: false },
   });
+  const session = await models.database.startSession();
+  session.startTransaction();
   for (const debate of debates) {
     const opinions = await models.Opinion.find({
       debate: debate._id,
@@ -21,6 +23,8 @@ export const finalize = async (duration = DRAW_DURATION) => {
     await debate.completeDebate();
     debatesFinished.push(debate._id);
   }
+  await session.commitTransaction();
+  session.endSession();
   let log = "";
   if (debatesFinished.length > 0) {
     log += `Finished Debates: ${debatesFinished.length}\n`;

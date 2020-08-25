@@ -57,6 +57,8 @@ router.post("/new", verifyPubKeyRoute, async (req, res) => {
   } else {
     const validationData = isBodyValidOpinion(req.body);
     if (validationData.isValid) {
+      const session = await req.context.models.database.startSession();
+      session.startTransaction();
       try {
         const opinion = await req.context.models.Opinion.createOpinion(
           validationData.data.address,
@@ -66,6 +68,7 @@ router.post("/new", verifyPubKeyRoute, async (req, res) => {
           parseInt(validationData.data.stake, 10),
           validationData.data.pro
         );
+        await session.commitTransaction();
         req.context.models.Opinion.findById(opinion._id)
           .select("debate creator contentType content stake pro created")
           .populate([{ path: "creator", select: "address" }])
@@ -79,6 +82,7 @@ router.post("/new", verifyPubKeyRoute, async (req, res) => {
       } catch (ex) {
         res.status(400).send({ error: ex.message });
       }
+      session.endSession();
     } else {
       res.status(400).send({ error: validationData.data });
     }
