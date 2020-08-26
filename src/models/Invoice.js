@@ -81,7 +81,7 @@ invoiceSchema.statics.createWithdrawalInvoice = async function createWithdrawalI
   }
   const account = await Account.accountForAddress(creatorAddress);
   if (!account) {
-    throw new Error("Unknown account address");
+    throw new Error("Fund your account first");
   }
   const createdInvoice = await Invoice.create({
     creator: account._id,

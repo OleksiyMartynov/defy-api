@@ -9,6 +9,7 @@ import {
 import { expandDebateAggregates } from "../utils/DatabaseUtils";
 import {
   MIN_VOTE_STAKE,
+  MIN_OPINION_START_STAKE,
   DRAW_DESCRIPTION_PREVIEW_LENGTH,
   WINNING_OPINION_FEE,
 } from "../models/ModelConstants";
@@ -122,7 +123,7 @@ router.get("/:objectId", async (req, res) => {
           .exec();
         const prevMaxStake = topOpinion[0]
           ? topOpinion[0].stake
-          : MIN_VOTE_STAKE;
+          : MIN_OPINION_START_STAKE - 1;
         const outDebate = debate.toJSON();
         outDebate.createdByYou = callerAddress === debate.creator.address;
         delete outDebate.creator;

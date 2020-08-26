@@ -37,7 +37,7 @@ describe("Opinion Model", () => {
         100,
         true
       )
-    ).rejects.toThrow("Unknown account address");
+    ).rejects.toThrow("Fund your account first");
     await expect(
       models.Opinion.createOpinion(
         ACCOUNT_EXISTING.address,
@@ -276,7 +276,7 @@ describe("Opinion Model", () => {
     const UNFUNDED_ADDRESS = "0xa236cffabbdd893a6f7cea402e7338643ced44a7";
     await expect(
       models.Opinion.createVote(UNFUNDED_ADDRESS, debate._id, 100, true)
-    ).rejects.toThrow("Unknown account address");
+    ).rejects.toThrow("Fund your account first");
     await expect(
       models.Opinion.createVote(
         ACCOUNT_EXISTING.address,

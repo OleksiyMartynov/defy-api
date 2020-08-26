@@ -68,7 +68,7 @@ opinionSchema.statics.createOpinion = async function createOpinion(
 ) {
   const account = await Account.accountForAddress(creatorAddress);
   if (!account) {
-    throw new Error("Unknown account address");
+    throw new Error("Fund your account first");
   }
   const debate = await Debate.findById(debateId);
   if (!debate) {

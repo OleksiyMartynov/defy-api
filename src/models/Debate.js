@@ -56,7 +56,7 @@ debateSchema.statics.createDebate = async function createDebate(
 ) {
   const account = await Account.accountForAddress(address);
   if (!account) {
-    throw new Error("Unknown account address");
+    throw new Error("Fund your account first");
   } else if (tags && tags.length > 5) {
     throw new Error("Too many tags");
   }

@@ -41,7 +41,7 @@ router.get("/", async (req, res) => {
                 return out;
               });
               res.send({
-                opinions: opinionsList,
+                opinions: opinionsList?opinionsList:[],
                 page: page,
                 pages: Math.ceil(count / pageSize),
               });

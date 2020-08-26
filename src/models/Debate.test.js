@@ -20,7 +20,7 @@ describe("Debate Model", () => {
   });
   it("Should not create debate with unknown account", async () => {
     await expect(models.Debate.createDebate("0xd215bffabbdd893a6f7cea402e7338643ced44a1")).rejects.toThrow(
-      "Unknown account address"
+      "Fund your account first"
     );
   });
   it("Should not create debate without enough balance", async () => {
