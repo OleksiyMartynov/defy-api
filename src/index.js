@@ -31,11 +31,8 @@ EventBusInstance.addListener(
         payload.title.length > 180
           ? payload.title.substring(0, 180) + "..."
           : payload.title
-      } (${payload.stake}sats) https://defy.fyi/debate/${payload._id}`
-      SlackBotInstance.postToChannel(
-        "debates",
-        msg
-      );
+      } (${payload.stake}sats) https://defy.fyi/debate/${payload._id}`;
+      SlackBotInstance.postToChannel(process.env.SLACK_CHANNEL, msg);
       TweetBotInstance.postTweet(msg);
     }
   )

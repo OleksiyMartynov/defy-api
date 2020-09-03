@@ -14,7 +14,7 @@ class TweetBot {
   }
   postTweet(message) {
     try {
-        this.botHelper.post("statuses/update", { status: message }, function (
+      this.botHelper.post("statuses/update", { status: message }, function (
         error,
         tweet,
         response
