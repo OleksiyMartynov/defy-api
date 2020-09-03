@@ -14,6 +14,9 @@ import {
   WINNING_OPINION_FEE,
 } from "../models/ModelConstants";
 import { trimStringToLength } from "../utils/Common";
+import {instance as EventBusInstance} from '../utils/EventBus';
+import {EVENTS} from '../constants';
+
 const router = Router();
 
 router.get("/", async (req, res) => {
@@ -171,6 +174,7 @@ router.post("/new", verifyPubKeyRoute, async (req, res) => {
               res.status(500).send({ error: "Failed to get debates" });
             } else {
               res.send({ debate });
+              EventBusInstance.sendEvent(EVENTS.DEBATE_CREATED, debate);
             }
           });
       } catch (ex) {

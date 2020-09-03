@@ -3,6 +3,10 @@ const server = require("./server");
 const { startFinalizer } = require("./service/finalizer");
 
 import { connectDb } from "./utils/DatabaseUtils";
+import EventBus, { instance as EventBusInstance } from "./utils/EventBus";
+import { instance as SlackBotInstance } from "./utils/SlackBot";
+import { instance as TweetBotInstance } from "./utils/TweetBot";
+import { EVENTS } from "./constants";
 
 connectDb(process.env.DATABASE_URL).then(async () => {
   server.listen(process.env.PORT, () =>
@@ -18,5 +22,18 @@ connectDb(process.env.DATABASE_URL).then(async () => {
   // });
 });
 
-//todo : charge house fees
-//todo : cleanup mongo models
+EventBusInstance.addListener(
+  new EventBus.Listener(
+    EVENTS.DEBATE_CREATED,
+    "serverEventCreated",
+    (payload) => {
+      const msg = `New debate: ${
+        payload.title.length > 180
+          ? payload.title.substring(0, 180) + "..."
+          : payload.title
+      } (${payload.stake}sats) https://defy.fyi/debate/${payload._id}`;
+      SlackBotInstance.postToChannel(process.env.SLACK_CHANNEL, msg);
+      TweetBotInstance.postTweet(msg);
+    }
+  )
+);
