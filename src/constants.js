@@ -1,0 +1,4 @@
+export const EVENTS = Object.freeze({
+    DEBATE_CREATED:   "DEBATE_CREATED",
+    DEBATE_FINISHED: "DEBATE_FINISHED",
+});
