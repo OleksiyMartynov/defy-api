@@ -1,5 +1,7 @@
 import models from "../models";
 import { DRAW_DURATION } from "../models/ModelConstants";
+import {instance as EventBusInstance} from '../utils/EventBus';
+import {EVENTS} from '../constants';
 
 export const finalize = async (duration = DRAW_DURATION) => {
   const debatesFinished = [];
@@ -22,6 +24,7 @@ export const finalize = async (duration = DRAW_DURATION) => {
     }
     await debate.completeDebate();
     debatesFinished.push(debate._id);
+    EventBusInstance.sendEvent(EVENTS.DEBATE_FINISHED, debate);
   }
   await session.commitTransaction();
   session.endSession();

@@ -13,18 +13,20 @@ class TweetBot {
     return TweetBot.instance;
   }
   postTweet(message) {
-    try {
-      this.botHelper.post("statuses/update", { status: message }, function (
-        error,
-        tweet,
-        response
-      ) {
-        if (error) {
-          console.log(error);
-        }
-      });
-    } catch (ex) {
-      console.trace(ex);
+    if(process.env.TWITTER_ENABLED === "true"){
+      try {
+        this.botHelper.post("statuses/update", { status: message }, function (
+          error,
+          tweet,
+          response
+        ) {
+          if (error) {
+            console.log(error);
+          }
+        });
+      } catch (ex) {
+        console.trace(ex);
+      }
     }
   }
 }

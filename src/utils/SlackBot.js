@@ -11,6 +11,7 @@ class SlackBot {
     return SlackBot.instance;
   }
   postToChannel(channelName, message) {
+    if(process.env.SLACK_ENABLED === "true"){
       try{
         this.botHelper.postMessageToChannel(
             channelName,
@@ -19,7 +20,7 @@ class SlackBot {
       }catch(ex){
           console.trace(ex);
       }
-    
+    }
   }
 }
 
