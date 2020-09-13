@@ -16,6 +16,7 @@ import {
 import { trimStringToLength } from "../utils/Common";
 import {instance as EventBusInstance} from '../utils/EventBus';
 import {EVENTS} from '../constants';
+import Analytics from '../utils/Analytics';
 
 const router = Router();
 
@@ -175,6 +176,7 @@ router.post("/new", verifyPubKeyRoute, async (req, res) => {
             } else {
               res.send({ debate });
               EventBusInstance.sendEvent(EVENTS.DEBATE_CREATED, debate);
+              Analytics.sendEvent(req.clientIp, validationData.data.address, "debate", "created", validationData.data.title, parseInt(validationData.data.stake, 10));
             }
           });
       } catch (ex) {

@@ -2,6 +2,7 @@ import { Router } from "express";
 import PaymentService from "../service/PaymentService";
 import { verifyPubKeyRoute } from "../middleware/SignatureVerifier";
 import LightningService from "../service/LightningService";
+import Analytics from '../utils/Analytics';
 const router = Router();
 const paymentService = new PaymentService(LightningService);
 
@@ -32,6 +33,7 @@ router.post("/deposit", verifyPubKeyRoute, async (req, res) => {
       );
       await session.commitTransaction();
       res.send({ invoice });
+      Analytics.sendEvent(req.clientIp, req.body.address, "payment", "deposit", invoice?.data);
     } catch (ex) {
       console.trace(ex);
       res.status(500).send({ error: "Failed to generate invoice" });
@@ -53,6 +55,7 @@ router.post("/withdraw", verifyPubKeyRoute, async (req, res) => {
       );
       await session.commitTransaction();
       res.send({ invoice });
+      Analytics.sendEvent(req.clientIp, req.body.address, "payment", "withdrawal", invoice?.data);
     } catch (ex) {
       console.trace(ex);
       res

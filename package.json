@@ -28,8 +28,10 @@
     "express": "^4.17.1",
     "grpc": "^1.24.2",
     "mongoose": "^5.8.11",
+    "request-ip": "^2.1.3",
     "slackbots": "^1.2.0",
     "twitter": "^1.7.1",
+    "universal-analytics": "^0.4.23",
     "url-metadata": "^2.4.0"
   },
   "jest": {

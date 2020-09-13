@@ -6,8 +6,10 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import express from "express";
 import logging from "../middleware/Logger";
+import requestIp from "request-ip";
 
 const app = express();
+app.use(requestIp.mw())
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

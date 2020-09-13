@@ -5,6 +5,7 @@ import {
   queryToFilter,
   isBodyValidOpinion,
 } from "../utils/ParamValidators";
+import Analytics from '../utils/Analytics';
 const router = Router();
 
 router.get("/", async (req, res) => {
@@ -77,6 +78,7 @@ router.post("/new", verifyPubKeyRoute, async (req, res) => {
               res.status(500).send({ error: "Failed to get opinion" });
             } else {
               res.send({ opinion });
+              Analytics.sendEvent(req.clientIp, validationData.data.address, "opinion", "created", validationData.data.contentType, parseInt(validationData.data.stake, 10));
             }
           });
       } catch (ex) {
