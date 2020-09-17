@@ -28,7 +28,10 @@ export const OPINION_TYPES = {
     },
     isStakeValid: async function (schema, stake, debateId) {
       var topOpinionQuery = schema
-        .find({ debate: debateId })
+        .find({ 
+          debate: debateId,
+          contentType: 'link' 
+        })
         .sort({ stake: -1 })
         .limit(1);
       const topOpinion = await topOpinionQuery.exec();
