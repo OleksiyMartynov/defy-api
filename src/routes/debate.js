@@ -121,6 +121,7 @@ router.get("/:objectId", async (req, res) => {
 
         var topOpinion = await req.context.models.Opinion.find({
           debate: debate._id,
+          contentType: 'link'
         })
           .sort({ stake: -1 })
           .limit(1)
