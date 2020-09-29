@@ -9,8 +9,10 @@ import logging from "../middleware/Logger";
 import requestIp from "request-ip";
 
 const app = express();
+
+app.set('trust proxy', true);
 app.use(requestIp.mw())
-app.use(cors());
+app.use(cors({credentials: true, origin: ["https://40b31b7c873b.ngrok.io/", 'http://localhost:3000']}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(logging);
@@ -22,6 +24,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use("/login", routes.login);
 app.use("/payment", routes.payment);
 app.use("/accounts", routes.account);
 app.use("/debates", routes.debate);

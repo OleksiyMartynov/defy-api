@@ -10,6 +10,12 @@ const accountSchema = new mongoose.Schema({
     required: true,
     minlength: 42,
   },
+  //key type
+  keyType: {
+    type: String,
+    default: 'custom',
+    enum: ['custom', 'lnurl-auth', 'webln'],
+  },
   //balance
   balance: { type: Number, default: 0 },
   //locked balance, in debate or opinion

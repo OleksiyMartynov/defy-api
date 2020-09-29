@@ -4,6 +4,7 @@ import debate from "./debate";
 import opinion from "./opinion";
 import tag from "./tag";
 import meta from "./meta";
+import login from "./login";
 
 export default {
   account,
@@ -11,5 +12,6 @@ export default {
   debate,
   opinion,
   tag,
-  meta
+  meta,
+  login,
 };

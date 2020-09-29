@@ -91,3 +91,18 @@ export default class LightningService {
     });
   }
 }
+
+export const verifySignature = async ( message, signature ) => {
+  return new Promise((resolve, reject) => {
+    lightning.verifyMessage({ msg: Buffer.from(message), signature: signature }, function (
+      error,
+      response
+    ) {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(response);
+      }
+    });
+  });
+}

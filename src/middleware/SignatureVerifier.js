@@ -25,5 +25,6 @@ export const verifyPubKey = async (
   originalData
 ) => {
   const address = ethers.utils.verifyMessage(originalData, detachedSignature);
+  console.log(address)
   return address === addressProvided;
 };
