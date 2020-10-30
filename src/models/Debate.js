@@ -55,7 +55,7 @@ debateSchema.statics.createDebate = async function createDebate(
   duration = DRAW_DURATION
 ) {
   const account = await Account.accountForAddress(address);
-  if (!account) {
+  if (!account || account.balance <= stake) {
     throw new Error("Fund your account first");
   } else if (tags && tags.length > 5) {
     throw new Error("Too many tags");

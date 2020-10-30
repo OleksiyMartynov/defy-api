@@ -67,7 +67,7 @@ opinionSchema.statics.createOpinion = async function createOpinion(
   pro
 ) {
   const account = await Account.accountForAddress(creatorAddress);
-  if (!account) {
+  if (!account || account.balance <= stake) {
     throw new Error("Fund your account first");
   }
   const debate = await Debate.findById(debateId);
